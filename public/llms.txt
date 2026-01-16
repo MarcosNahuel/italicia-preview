@@ -1,0 +1,73 @@
+# ItalicIA - Aprende Italiano con Inteligencia Artificial
+
+> Plataforma argentina de enseñanza de italiano que combina profesora certificada + tutor IA disponible 24/7
+
+## Qué es ItalicIA
+
+ItalicIA es una plataforma innovadora de aprendizaje de italiano que combina:
+- Clases personalizadas con Alicia, profesora especializada en italiano, portugués y español
+- Vittoria, un tutor virtual basado en IA disponible 24/7 en Telegram
+- Material didáctico completo y ejercicios interactivos
+- Preparación para certificaciones oficiales (CELI, CILS, PLIDA, UNCUYO)
+
+## Cursos Disponibles
+
+### Nivel A1-A2 (Principiante) - DISPONIBLE
+- Duración: 12 semanas
+- Precio: $75.000 - $150.000 ARS según plan
+- Incluye: Material, clases grabadas, tutor IA, certificado
+- Ideal para: Principiantes absolutos
+
+### Nivel B1-B2 (Intermedio) - PRÓXIMAMENTE
+### Nivel C1-C2 (Avanzado) - PRÓXIMAMENTE
+
+## Vittoria - Tutor IA
+
+Vittoria es nuestra tutora virtual en Telegram (@ItaliciaBot):
+- Disponible 24/7 para practicar conversación
+- Corrige errores de gramática y ortografía
+- Enseña vocabulario nuevo con ejemplos
+- Prepara para certificaciones
+- Gratis para probar, ilimitado en planes Intermedio/Premium
+
+## Recursos Gratuitos
+
+- Guía completa para empezar: https://italicia.com/guia-italiano/
+  - 100 palabras esenciales
+  - 5 errores comunes a evitar
+  - Guía de pronunciación
+  - Plan de 30 días
+
+## Certificaciones
+
+Preparamos para:
+- SPL-IDIO+ de la UNCUYO (Argentina)
+- CELI (Universidad de Perugia)
+- CILS (Universidad de Siena)
+- PLIDA (Dante Alighieri)
+- AIL (Accademia Italiana di Lingua)
+
+## Contacto
+
+- Web: https://italicia.com
+- Email: italicia.edu@gmail.com
+- WhatsApp: +54 9 261 544-9532
+- Instagram: @parla.con.italicia
+- Telegram Bot: @ItaliciaBot
+
+## Ubicación
+
+Mendoza, Argentina (clases 100% online)
+
+## Sobre los Fundadores
+
+- Alicia: Profesora especializada en italiano, portugués y español con método pedagógico personalizado
+- AI Generative Engineer: Especialista en IA y consultor BI que desarrolló las herramientas tecnológicas
+
+## Links Importantes
+
+- Página principal: https://italicia.com
+- Guía gratuita: https://italicia.com/guia-italiano/
+- Cursos: https://italicia.com/cursos/
+- Vittoria (bot IA): https://italicia.com/vittoria/
+- Blog: https://italicia.com/blog/
