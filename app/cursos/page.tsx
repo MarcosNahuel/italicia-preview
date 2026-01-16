@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Calendar, Clock, Users, BookOpen, Award, Check, Star } from 'lucide-react'
+import { Calendar, Clock, Users, BookOpen, Award, Check, Star, MessageCircle, Download } from 'lucide-react'
 import SchemaOrg from '@/components/SchemaOrg'
 
 export const metadata: Metadata = {
@@ -27,16 +27,26 @@ const coursesSchema = {
     {
       '@type': 'Course',
       position: 1,
+      name: 'Conversazione in Italiano',
+      description: 'Programa de conversación para pasar de A2 a A2+/B1. Clases dinámicas sobre cultura, cine, música, arte y más.',
+      provider: { '@type': 'Organization', name: 'ItalicIA' },
+      educationalLevel: 'intermediate',
+      courseMode: 'online',
+      offers: { '@type': 'Offer', price: '90000', priceCurrency: 'ARS' },
+    },
+    {
+      '@type': 'Course',
+      position: 2,
       name: 'Italiano Nivel A1-A2 (Principiante)',
       description: 'Curso para principiantes absolutos. Aprende vocabulario esencial, gramática básica y comunicación cotidiana.',
       provider: { '@type': 'Organization', name: 'ItalicIA' },
       educationalLevel: 'beginner',
       courseMode: 'online',
-      offers: { '@type': 'Offer', price: '75000', priceCurrency: 'ARS' },
+      offers: { '@type': 'Offer', price: '105000', priceCurrency: 'ARS' },
     },
     {
       '@type': 'Course',
-      position: 2,
+      position: 3,
       name: 'Italiano Nivel B1-B2 (Intermedio)',
       description: 'Curso intermedio para expandir vocabulario, gramática compleja y matices culturales.',
       provider: { '@type': 'Organization', name: 'ItalicIA' },
@@ -45,7 +55,7 @@ const coursesSchema = {
     },
     {
       '@type': 'Course',
-      position: 3,
+      position: 4,
       name: 'Italiano Nivel C1-C2 (Avanzado)',
       description: 'Curso avanzado con literatura, comunicación profesional y preparación para certificaciones.',
       provider: { '@type': 'Organization', name: 'ItalicIA' },
@@ -56,6 +66,51 @@ const coursesSchema = {
 }
 
 const levels = [
+  {
+    level: 'A2+',
+    title: 'Conversazione in Italiano',
+    subtitle: 'De A2 a A2+/B1 con fluidez y confianza',
+    available: true,
+    featured: true,
+    duration: '4 semanas',
+    hours: '6 horas',
+    students: '45',
+    rating: 5.0,
+    price: '$90.000',
+    priceNote: 'por mes',
+    image: 'https://images.unsplash.com/photo-1529260830199-42c24126f198?auto=format&fit=crop&w=800&q=80',
+    description: 'Programa de conversación diseñado para ayudarte a desenvolverte con fluidez y confianza. Ideal para quienes buscan dar el salto de A2 a A2+/B1 de una forma dinámica y amigable.',
+    topics: [
+      'Presentaciones y rutinas',
+      'Viajes y vacaciones',
+      'Comida y restaurantes',
+      'Cultura italiana',
+      'Cinema y música',
+      'Arte y literatura',
+      'Temas actuales',
+      'Proponi il tuo tema!',
+    ],
+    objectives: [
+      'Desenvolverte con fluidez en conversaciones',
+      'Ampliar vocabulario cotidiano',
+      'Mejorar comprensión auditiva',
+      'Ganar confianza al hablar',
+      'Conocer cultura italiana',
+    ],
+    includes: [
+      '4 clases de 90 minutos al mes',
+      'Grupos reducidos',
+      'Práctica conversacional guiada',
+      'Material de vocabulario y frases',
+      'Feedback personalizado',
+      'Ambiente amigable y dinámico',
+    ],
+    schedule: {
+      options: ['Martes 10:00 - 11:30', 'Jueves 9:30 - 11:00'],
+      startDate: 'Febrero 2026',
+    },
+    downloadProgram: '/programa-conversazione.pdf',
+  },
   {
     level: 'A1-A2',
     title: 'Italiano para Principiantes',
@@ -236,6 +291,30 @@ export default function CursosPage() {
 
                     <p className="text-gray-700 mb-6">{course.description}</p>
 
+                    {/* Precio destacado para cursos con precio */}
+                    {'price' in course && course.price && (
+                      <div className="mb-6 p-4 bg-gradient-to-r from-accent-50 to-emerald-50 rounded-xl border border-accent-200">
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                          <div>
+                            <span className="text-3xl font-bold text-accent-600">{course.price}</span>
+                            {'priceNote' in course && <span className="text-gray-600 ml-2">{course.priceNote}</span>}
+                          </div>
+                          {'schedule' in course && course.schedule && (
+                            <div className="text-sm text-gray-700">
+                              <p className="font-semibold mb-1">Horarios disponibles:</p>
+                              {course.schedule.options.map((opt: string, i: number) => (
+                                <p key={i} className="flex items-center">
+                                  <Clock className="w-3 h-3 mr-1 text-primary-600" />
+                                  {opt}
+                                </p>
+                              ))}
+                              <p className="mt-1 text-accent-600 font-medium">Inicio: {course.schedule.startDate}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2 text-primary-600" />
@@ -245,6 +324,12 @@ export default function CursosPage() {
                         <Clock className="w-4 h-4 mr-2 text-primary-600" />
                         {course.hours} totales
                       </div>
+                      {'featured' in course && course.featured && (
+                        <div className="flex items-center text-accent-600 font-medium">
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Modalidad online (Meet)
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -278,19 +363,41 @@ export default function CursosPage() {
                     </div>
 
                     {course.available ? (
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        <Link
-                          href="/#precios"
-                          className="btn-primary text-center"
-                        >
-                          Ver Planes y Precios
-                        </Link>
-                        <Link
-                          href="/#contacto"
-                          className="px-6 py-3 border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-colors text-center"
-                        >
-                          Solicitar Información
-                        </Link>
+                      <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+                        {'downloadProgram' in course && course.downloadProgram ? (
+                          <>
+                            <a
+                              href={course.downloadProgram}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-primary text-center inline-flex items-center justify-center gap-2"
+                            >
+                              <Download className="w-4 h-4" />
+                              Descargar Programa
+                            </a>
+                            <Link
+                              href="/#contacto"
+                              className="px-6 py-3 bg-accent-500 text-white font-semibold rounded-lg hover:bg-accent-600 transition-colors text-center"
+                            >
+                              Inscribirme
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <Link
+                              href="/#precios"
+                              className="btn-primary text-center"
+                            >
+                              Ver Planes y Precios
+                            </Link>
+                            <Link
+                              href="/#contacto"
+                              className="px-6 py-3 border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-colors text-center"
+                            >
+                              Solicitar Información
+                            </Link>
+                          </>
+                        )}
                       </div>
                     ) : (
                       <div className="bg-gray-100 p-4 rounded-lg">

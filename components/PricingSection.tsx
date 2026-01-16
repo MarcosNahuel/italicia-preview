@@ -9,8 +9,8 @@ import AnimatedSection from './AnimatedSection'
 const plans = [
   {
     name: 'Base',
-    price: '$75.000',
-    priceNumber: 75000,
+    price: '$105.000',
+    priceNumber: 105000,
     description: 'Ideal para comenzar tu viaje',
     icon: Zap,
     features: [
@@ -24,8 +24,8 @@ const plans = [
   },
   {
     name: 'Intermedio',
-    price: '$110.000',
-    priceNumber: 110000,
+    price: '$140.000',
+    priceNumber: 140000,
     description: 'Para aprendizaje acelerado',
     icon: Sparkles,
     features: [
@@ -40,8 +40,8 @@ const plans = [
   },
   {
     name: 'Premium',
-    price: '$150.000',
-    priceNumber: 150000,
+    price: '$180.000',
+    priceNumber: 180000,
     description: 'Experiencia completa e inmersiva',
     icon: Crown,
     features: [
