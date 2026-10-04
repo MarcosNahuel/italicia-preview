@@ -7,8 +7,8 @@ import { Menu, X } from 'lucide-react'
 
 const navLinks = [
   { href: '/#nosotros', label: 'Nosotros' },
-  { href: '/#precios', label: 'Precios' },
   { href: '/cursos/', label: 'Cursos' },
+  { href: '/materiales/', label: 'Materiales' },
   { href: '/vittoria/', label: 'Vittoria IA' },
   { href: '/guia-italiano/', label: 'Guia Gratis' },
   { href: '/blog/', label: 'Blog' },
@@ -35,7 +35,7 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden lg:flex items-center space-x-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -56,8 +56,10 @@ export default function Navigation() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-white p-2"
-            aria-label="Toggle menu"
+            className="lg:hidden text-white p-2"
+            aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={isOpen}
+            aria-controls="menu-movil"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -65,7 +67,7 @@ export default function Navigation() {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-primary-800">
+          <div id="menu-movil" className="lg:hidden py-4 border-t border-primary-800">
             <div className="flex flex-col space-y-3">
               {navLinks.map((link) => (
                 <Link

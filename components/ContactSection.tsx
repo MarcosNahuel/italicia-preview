@@ -32,31 +32,20 @@ const contactInfo = [
 ]
 
 export default function ContactSection() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [preparedMessage, setPreparedMessage] = useState<string | null>(null)
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsSubmitting(true)
-
-    const formData = new FormData(e.currentTarget)
-    const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      subject: formData.get('subject'),
-      message: formData.get('message'),
-    }
-
-    try {
-      console.log('Form data:', data)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setSubmitted(true)
-      ;(e.target as HTMLFormElement).reset()
-    } catch (error) {
-      alert('Hubo un error al enviar el mensaje. Por favor, inténtalo de nuevo.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    const data = new FormData(e.currentTarget)
+    const value = (name: string) => String(data.get(name) ?? '').trim()
+    const message = [
+      'Consulta desde la web de Italicia',
+      'Nombre: ' + value('name'),
+      'Email: ' + value('email'),
+      'Asunto: ' + value('subject'),
+      '', value('message'),
+    ].join('\n')
+    setPreparedMessage('https://wa.me/5492615449532?text=' + encodeURIComponent(message))
   }
 
   return (
@@ -161,23 +150,33 @@ export default function ContactSection() {
 
           {/* Contact Form */}
           <AnimatedSection animation="slide-left" delay={200} className="lg:w-3/5">
-            {submitted ? (
+            {preparedMessage ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center p-12 rounded-2xl bg-gradient-to-br from-accent-50 to-emerald-50 border border-accent-200">
                   <div className="w-20 h-20 bg-gradient-to-br from-accent-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
                     <CheckCircle2 className="w-10 h-10 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">¡Mensaje Enviado!</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Tu consulta está preparada</h3>
                   <p className="text-gray-600 mb-6">
-                    Gracias por contactarnos. Te responderemos a la brevedad.
+                    Abrí WhatsApp, revisá el mensaje y tocá Enviar para completar la consulta.
                   </p>
                   <button
-                    onClick={() => setSubmitted(false)}
+                    type="button"
+                    onClick={() => setPreparedMessage(null)}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-accent-500 to-emerald-500 text-white font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all"
                   >
                     <Mail className="w-5 h-5" />
-                    Enviar otro mensaje
+                    Volver al formulario
                   </button>
+                  <a
+                    href={preparedMessage}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 flex items-center justify-center gap-2 px-6 py-3 bg-primary-900 text-white font-semibold rounded-xl hover:bg-primary-800 transition-colors"
+                  >
+                    <Send className="w-5 h-5" aria-hidden="true" />
+                    Abrir WhatsApp
+                  </a>
                 </div>
               </div>
             ) : (
@@ -254,23 +253,10 @@ export default function ContactSection() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting}
                     className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-500 to-emerald-500 text-white font-semibold shadow-lg shadow-accent-500/25 hover:shadow-xl hover:shadow-accent-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        Enviar Mensaje
-                      </>
-                    )}
+                    <Send className="w-5 h-5" aria-hidden="true" />
+                    Preparar consulta por WhatsApp
                   </button>
                 </form>
               </div>

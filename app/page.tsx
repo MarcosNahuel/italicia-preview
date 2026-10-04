@@ -4,17 +4,19 @@ import AboutUs from '@/components/AboutUs'
 import PricingSection from '@/components/PricingSection'
 import VittoriaPreview from '@/components/VittoriaPreview'
 import CoursesPreview from '@/components/CoursesPreview'
+import MaterialsPreview from '@/components/MaterialsPreview'
 import Methodology from '@/components/Methodology'
 import Certifications from '@/components/Certifications'
 import FAQSection from '@/components/FAQSection'
 import BlogSection from '@/components/BlogSection'
 import ContactSection from '@/components/ContactSection'
 import SchemaOrg from '@/components/SchemaOrg'
+import { courses } from '@/lib/catalog'
 
 export const metadata: Metadata = {
-  title: 'ItalicIA - Aprende Italiano con Inteligencia Artificial',
+  title: 'Italicia - Cursos de italiano y materiales con Alicia',
   description:
-    'Plataforma argentina de aprendizaje de italiano con IA. Tutor virtual Vittoria disponible 24/7, clases personalizadas con profesora certificada y certificaciones oficiales. Aprende italiano de forma inmersiva.',
+    'Aprendé italiano con Alicia: cursos A1, A2 y conversación. Conocé los manuales, las lecturas y los recursos de Italicia para seguir practicando entre clases.',
   keywords: [
     'aprender italiano',
     'italiano con IA',
@@ -32,40 +34,19 @@ export const metadata: Metadata = {
 
 const courseSchema = {
   '@context': 'https://schema.org',
-  '@type': 'Course',
-  name: 'Curso de Italiano Nivel A1 con IA',
-  description:
-    'Curso completo de italiano nivel A1 con tutor IA Vittoria disponible 24/7, clases sincrónicas con profesora certificada y material de estudio completo.',
-  provider: {
-    '@type': 'Organization',
-    name: 'ItalicIA',
-    url: 'https://italicia.com',
-  },
-  courseMode: 'online',
-  educationalLevel: 'beginner',
-  inLanguage: ['es', 'it'],
-  teaches: 'Idioma Italiano',
-  hasCourseInstance: {
-    '@type': 'CourseInstance',
-    courseMode: 'online',
-    courseWorkload: 'PT12W',
-  },
-  offers: [
-    {
-      '@type': 'Offer',
-      name: 'Plan Base',
-      price: '75000',
-      priceCurrency: 'ARS',
-      availability: 'https://schema.org/InStock',
+  '@type': 'ItemList',
+  itemListElement: courses.map((course, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    item: {
+      '@type': 'Course',
+      name: `${course.level}: ${course.title}`,
+      description: course.description,
+      url: `https://italicia.com/cursos/#${course.id}`,
+      provider: { '@type': 'Organization', name: 'Italicia', url: 'https://italicia.com' },
+      inLanguage: ['es', 'it'],
     },
-    {
-      '@type': 'Offer',
-      name: 'Plan Premium',
-      price: '150000',
-      priceCurrency: 'ARS',
-      availability: 'https://schema.org/InStock',
-    },
-  ],
+  })),
 }
 
 const personSchema = {
@@ -103,10 +84,11 @@ export default function HomePage() {
     <>
       <SchemaOrg schema={[courseSchema, personSchema, softwareSchema]} />
       <HeroSection />
+      <CoursesPreview />
+      <MaterialsPreview />
       <AboutUs />
       <PricingSection />
       <VittoriaPreview />
-      <CoursesPreview />
       <Methodology />
       <Certifications />
       <FAQSection />

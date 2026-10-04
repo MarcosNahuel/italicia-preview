@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer className="bg-primary-950 text-white py-16">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="md:col-span-1">
             <h3 className="text-2xl font-bold mb-4">ItalicIA</h3>
@@ -68,6 +68,11 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 text-accent-400">Recursos</h4>
             <ul className="space-y-2">
               <li>
+                <Link href="/materiales/" className="text-gray-400 hover:text-white transition-colors">
+                  Materiales y lecturas
+                </Link>
+              </li>
+              <li>
                 <Link href="/guia-italiano/" className="text-gray-400 hover:text-white transition-colors">
                   Guia Gratuita
                 </Link>
@@ -100,8 +105,8 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 text-accent-400">Contacto</h4>
             <ul className="space-y-3">
               <li className="flex items-center text-gray-400">
-                <Mail size={18} className="mr-2 text-accent-400" />
-                <a href="mailto:italicia.edu@gmail.com" className="hover:text-white transition-colors">
+                <Mail size={18} className="mr-2 shrink-0 text-accent-400" />
+                <a href="mailto:italicia.edu@gmail.com" className="min-w-0 break-words hover:text-white transition-colors">
                   italicia.edu@gmail.com
                 </a>
               </li>

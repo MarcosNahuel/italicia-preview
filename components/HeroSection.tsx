@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import AnimatedCounter from './AnimatedCounter'
 
 export default function HeroSection() {
   const [scrollY, setScrollY] = useState(0)
@@ -92,7 +91,7 @@ export default function HeroSection() {
               isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            Tu tutor virtual Vittoria disponible 24/7 para ayudarte a dominar el italiano.
+            Cursos A1, A2 y conversación con Alicia. Clases, lecturas y materiales de Italicia para aprender y usar el idioma.
           </p>
 
           {/* CTA Buttons */}
@@ -102,17 +101,17 @@ export default function HeroSection() {
             }`}
           >
             <Link
-              href="/#precios"
+              href="/cursos/"
               className="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-accent-500 to-accent-600 text-white font-semibold rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-lg hover:shadow-accent-500/25"
             >
-              <span className="relative z-10">Ver Planes</span>
+              <span className="relative z-10">Ver los cursos</span>
               <div className="absolute inset-0 bg-gradient-to-r from-accent-600 to-accent-700 opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
             <Link
-              href="/guia-italiano/"
+              href="/materiales/"
               className="group inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 hover:border-white/30 transition-all hover:scale-105"
             >
-              <span>Guía Gratuita</span>
+              <span>Conocer los materiales</span>
               <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -127,15 +126,15 @@ export default function HeroSection() {
           >
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-white">
-                A1-C2
+                A1 · A2
               </div>
-              <div className="text-sm text-gray-400 mt-1">Todos los niveles</div>
+              <div className="text-sm text-gray-400 mt-1">Cursos de italiano</div>
             </div>
             <div className="text-center border-x border-white/10">
               <div className="text-3xl md:text-4xl font-bold text-white">
-                <AnimatedCounter end={98} suffix="%" />
+                Parliamo
               </div>
-              <div className="text-sm text-gray-400 mt-1">Satisfacción</div>
+              <div className="text-sm text-gray-400 mt-1">Conversación</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-white">
