@@ -18,7 +18,7 @@ export default function PrivacyPage() {
 
           <div className="prose prose-gray max-w-none">
             <p className="text-gray-600 mb-6">
-              Última actualización: Enero 2025
+              Última actualización: 4 de octubre de 2026
             </p>
 
             <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">1. Información que Recopilamos</h2>
@@ -30,6 +30,7 @@ export default function PrivacyPage() {
               <li>Información de uso del sitio web mediante cookies</li>
               <li>Conversaciones con nuestro bot Vittoria para mejorar el servicio</li>
               <li>Información de pago procesada de forma segura por terceros</li>
+              <li>En compras de PDF: correo de entrega, material, importe, moneda, referencia y estado del pago</li>
             </ul>
 
             <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">2. Uso de la Información</h2>
@@ -42,6 +43,7 @@ export default function PrivacyPage() {
               <li>Comunicarnos contigo sobre tu cuenta y actualizaciones</li>
               <li>Mejorar el rendimiento de nuestro tutor IA Vittoria</li>
               <li>Cumplir con obligaciones legales</li>
+              <li>Confirmar las compras de materiales, entregar el PDF y resolver problemas de descarga. El correo de compra no se incorpora automáticamente a listas de publicidad.</li>
             </ul>
 
             <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">3. Bot Vittoria (Telegram)</h2>
