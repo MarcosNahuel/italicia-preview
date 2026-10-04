@@ -21,6 +21,13 @@ Implementación del 4 de octubre de 2026. La entrega automática permanece desha
 
 ## Conectar los servicios
 
+Estado comprobado el 4 de octubre de 2026, después de la confirmación explícita de Alicia para conectar los servicios y aceptar las condiciones del plan gratuito:
+
+- Mercado Pago: `MP_ACCESS_TOKEN` configurado como secreto de producción mediante el conector Vercel. La API oficial confirmó que pertenece al vendedor argentino configurado en `MP_MERCHANT_ID`. El acceso a la configuración del webhook exige una nueva aprobación por QR en la app; su firma todavía no está conectada.
+- PayPal: aplicación REST de producción **Italicia Libros** creada en la cuenta de Alicia. Webhook de producción guardado con los seis eventos indicados abajo. `PAYPAL_CLIENT_ID`, `PAYPAL_MERCHANT_ID` y `PAYPAL_WEBHOOK_ID` configurados; falta `PAYPAL_CLIENT_SECRET`. El navegador protege ese valor y se dejó preparado el campo secreto de Vercel para que Alicia lo pegue directamente.
+- Resend: recurso **italicia-libros**, plan **Free**, instalado en TRAID y conectado sólo al proyecto `italicia`, en Production y Preview. La integración creó `RESEND_API_KEY` y `RESEND_EMAIL_DOMAIN` como secretos. `BOOK_EMAIL_FROM` está preparado como `Italicia <libros@italicia.com>`; aún no puede usarse para entregar compras porque falta verificar el dominio en Namecheap.
+- Los tres controles de habilitación permanecen en `false`. Todavía no se realizó un cobro de prueba completo ni se recibió un correo de entrega. Configurar credenciales no acredita una compra ni demuestra que la entrega funcione.
+
 - Mercado Pago: Access Token del vendedor, ID del vendedor y clave de firma del webhook. Registrar `/api/libros/webhooks/mercadopago/` y eventos de pagos, diferenciando prueba y producción.
 - PayPal: aplicación REST de Alicia, Client ID, Client Secret, Merchant ID y Webhook ID. Registrar `/api/libros/webhooks/paypal/` para `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.PENDING`, `PAYMENT.CAPTURE.DENIED`, `PAYMENT.CAPTURE.REFUNDED`, `PAYMENT.CAPTURE.REVERSED`.
 - Correo: Resend con dominio/remitente verificado, `RESEND_API_KEY` y `BOOK_EMAIL_FROM`. La respuesta se dirige a `italicia.edu@gmail.com`. La aceptación por la API de correo no demuestra recepción en la bandeja del comprador.
