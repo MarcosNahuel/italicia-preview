@@ -33,4 +33,4 @@ Implementación del 4 de octubre de 2026. La entrega automática permanece desha
 
 `npm run build` incluye las funciones de compra, descarga, webhooks y reconciliación. No hacer transacciones reales para comprobar la implementación sin autorización específica.
 
-La migración inicial puede usar una ruta administrativa temporal, protegida por secreto y bandera exclusiva de producción. Deshabilitar la bandera y retirar esa ruta después de verificar los dos archivos. No conservar este canal de carga en la versión final.
+La migración inicial verificó en producción la lectura consistente y el rechazo de escrituras con una versión desactualizada. Ambos PDF se subieron de forma privada y se comprobaron tamaño y SHA-256. La ruta administrativa temporal se retiró y `BOOK_ASSET_UPLOAD_ENABLED=false`. No hay un canal público de carga en la versión final.
