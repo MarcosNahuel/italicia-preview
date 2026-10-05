@@ -1,5 +1,5 @@
 import 'server-only'
-import { getProduct, type Provider } from './products'
+import { getProduct, normalizeEmail, type Provider } from './products'
 
 export function required(name: string): string {
   const value = process.env[name]?.trim()
@@ -17,6 +17,22 @@ export function paymentMode(): 'live' | 'sandbox' {
   return process.env.BOOK_PAYMENT_MODE === 'live' ? 'live' : 'sandbox'
 }
 
+// Test purchases are confined to Preview and the owner's verified test inbox.
+// This never substitutes for verified delivery in production.
+export function sandboxTesting() {
+  return process.env.VERCEL_ENV === 'preview' && paymentMode() === 'sandbox'
+    && process.env.BOOK_SANDBOX_TEST_ENABLED === 'true'
+    && normalizeEmail(process.env.BOOK_SANDBOX_TEST_EMAIL) === 'italicia.edu@gmail.com'
+}
+
+export function checkoutEmailAllowed(email: string) {
+  return paymentMode() === 'live' || (sandboxTesting() && email === 'italicia.edu@gmail.com')
+}
+
+export function commerceStoragePrefix() {
+  return paymentMode() === 'sandbox' ? 'sandbox/' : ''
+}
+
 export function configurationIssues(productId: string, provider: Provider): string[] {
   const product = getProduct(productId)
   if (!product) return ['unknown-product']
@@ -29,9 +45,10 @@ export function configurationIssues(productId: string, provider: Provider): stri
   if ((process.env.BOOK_TOKEN_SECRET?.length ?? 0) < 32) issues.push('BOOK_TOKEN_SECRET-length')
   const pdf = process.env[product.pdfEnv] ?? ''
   if (pdf && !/^books\/[a-zA-Z0-9_./-]+\.pdf$/.test(pdf)) issues.push('private-pdf-path')
-  if (process.env.BOOK_DELIVERY_VERIFIED !== 'true') issues.push('delivery-not-verified')
+  if (process.env.BOOK_DELIVERY_VERIFIED !== 'true' && !sandboxTesting()) issues.push('delivery-not-verified')
   if (process.env[provider === 'mercadoPago' ? 'BOOK_CHECKOUT_MP_ENABLED' : 'BOOK_CHECKOUT_PAYPAL_ENABLED'] !== 'true') issues.push('provider-disabled')
   if (paymentMode() !== 'live' && process.env.VERCEL_ENV === 'production') issues.push('sandbox-in-production')
+  if (paymentMode() === 'live' && process.env.VERCEL_ENV === 'preview') issues.push('live-in-preview')
   return issues
 }
 

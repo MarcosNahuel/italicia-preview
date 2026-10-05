@@ -5,7 +5,7 @@ import { currencyFor, getProduct, normalizeEmail, cents } from '../lib/commerce/
 import { orderAccess, verifyOrderAccess, downloadToken, verifyDownloadToken, verifyMpSignature, newOrderId } from '../lib/commerce/security'
 import { validateMpPayment, validatePaypalPayment } from '../lib/commerce/validation'
 import { confirmPayment, deliverEmail } from '../lib/commerce/fulfillment'
-import { configurationIssues } from '../lib/commerce/config'
+import { checkoutEmailAllowed, commerceStoragePrefix, configurationIssues, sandboxTesting } from '../lib/commerce/config'
 import type { Order, OrderStore } from '../lib/commerce/orders'
 import type { MpPayment, PaypalOrder, PaypalCapture } from '../lib/commerce/validation'
 
@@ -117,6 +117,33 @@ test('provider buttons stay inactive without configuration and verified delivery
   process.env.BOOK_DELIVERY_VERIFIED = 'false'
   try { assert.ok(configurationIssues('manual-a1', 'mercadoPago').includes('delivery-not-verified')); assert.ok(configurationIssues('lectura-a1', 'paypal').includes('delivery-not-verified')) }
   finally { if (old === undefined) delete process.env.BOOK_DELIVERY_VERIFIED; else process.env.BOOK_DELIVERY_VERIFIED = old }
+})
+
+test('Sandbox testing is limited to Preview and the owner inbox; storage never overlaps live orders', () => {
+  const keys = ['VERCEL_ENV', 'BOOK_PAYMENT_MODE', 'BOOK_DELIVERY_VERIFIED', 'BOOK_SANDBOX_TEST_ENABLED', 'BOOK_SANDBOX_TEST_EMAIL'] as const
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]))
+  try {
+    Object.assign(process.env, { VERCEL_ENV: 'preview', BOOK_PAYMENT_MODE: 'sandbox', BOOK_DELIVERY_VERIFIED: 'false', BOOK_SANDBOX_TEST_ENABLED: 'true', BOOK_SANDBOX_TEST_EMAIL: 'italicia.edu@gmail.com' })
+    assert.equal(sandboxTesting(), true)
+    assert.equal(checkoutEmailAllowed('italicia.edu@gmail.com'), true)
+    assert.equal(checkoutEmailAllowed('student@example.com'), false)
+    assert.equal(commerceStoragePrefix(), 'sandbox/')
+    assert.equal(configurationIssues('manual-a1', 'paypal').includes('delivery-not-verified'), false)
+    process.env.VERCEL_ENV = 'production'
+    assert.equal(sandboxTesting(), false)
+    assert.equal(checkoutEmailAllowed('italicia.edu@gmail.com'), false)
+    assert.ok(configurationIssues('manual-a1', 'paypal').includes('sandbox-in-production'))
+    assert.ok(configurationIssues('manual-a1', 'paypal').includes('delivery-not-verified'))
+    process.env.VERCEL_ENV = 'preview'
+    process.env.BOOK_SANDBOX_TEST_EMAIL = 'student@example.com'
+    assert.equal(sandboxTesting(), false)
+    process.env.BOOK_PAYMENT_MODE = 'live'
+    assert.equal(commerceStoragePrefix(), '')
+    assert.equal(sandboxTesting(), false)
+    assert.ok(configurationIssues('manual-a1', 'paypal').includes('live-in-preview'))
+  } finally {
+    for (const key of keys) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key] }
+  }
 })
 
 test('HTTP routes reject foreign origins, disabled purchases, forged downloads and unauthenticated jobs', async () => {

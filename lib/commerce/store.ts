@@ -1,6 +1,6 @@
 import 'server-only'
 import { get, put, list, BlobPreconditionFailedError } from '@vercel/blob'
-import { required } from './config'
+import { commerceStoragePrefix, required } from './config'
 import { validOrderId } from './security'
 import type { Order, OrderStore } from './orders'
 import type { Provider } from './products'
@@ -12,11 +12,11 @@ const auth = () => process.env.BLOB_READ_WRITE_TOKEN
 const options = () => ({ access: 'private' as const, ...auth() })
 const orderPath = (id: string) => {
   if (!validOrderId(id)) throw new Error('Invalid order ID')
-  return `orders/${id}.json`
+  return `${commerceStoragePrefix()}orders/${id}.json`
 }
 function providerPath(prefix: string, provider: Provider, id: string) {
   if (!/^[a-zA-Z0-9_-]{1,100}$/.test(id)) throw new Error('Invalid provider ID')
-  return `${prefix}/${provider}/${id}.json`
+  return `${commerceStoragePrefix()}${prefix}/${provider}/${id}.json`
 }
 
 async function readJson<T>(path: string): Promise<{ value: T; etag: string } | null> {
@@ -58,15 +58,16 @@ export const orderStore: OrderStore = {
 }
 
 export async function orderBatch(cursor?: string) {
-  const batch = await list({ ...auth(), prefix: 'orders/', limit: 5, cursor })
-  return { ids: batch.blobs.map(blob => blob.pathname.slice(7, -5)).filter(validOrderId), cursor: batch.hasMore ? batch.cursor : undefined }
+  const prefix = `${commerceStoragePrefix()}orders/`
+  const batch = await list({ ...auth(), prefix, limit: 5, cursor })
+  return { ids: batch.blobs.map(blob => blob.pathname.slice(prefix.length, -5)).filter(validOrderId), cursor: batch.hasMore ? batch.cursor : undefined }
 }
 
 export async function reconciliationCursor() {
-  return (await readJson<{ cursor?: string }>('system/reconciliation.json'))?.value.cursor
+  return (await readJson<{ cursor?: string }>(`${commerceStoragePrefix()}system/reconciliation.json`))?.value.cursor
 }
 export async function saveReconciliationCursor(cursor?: string) {
-  await put('system/reconciliation.json', JSON.stringify({ cursor }), { ...options(), contentType: 'application/json', addRandomSuffix: false, allowOverwrite: true })
+  await put(`${commerceStoragePrefix()}system/reconciliation.json`, JSON.stringify({ cursor }), { ...options(), contentType: 'application/json', addRandomSuffix: false, allowOverwrite: true })
 }
 
 export async function privatePdf(path: string) {

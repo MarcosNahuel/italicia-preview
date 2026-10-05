@@ -38,6 +38,16 @@ Vercel CLI **62.2.0** está instalado en el perfil de Alicia, con sesión `marco
 
 ## Comprobaciones locales
 
+### Entorno Sandbox separado
+
+La sesión del panel PayPal fue restablecida y se creó **Italicia Libros Sandbox**, asociada al vendedor de prueba argentino. Se registró el webhook `95U3495367481882E` para los seis eventos documentados. Las credenciales de producción no se reemplazaron; los datos de Sandbox están exclusivamente en Preview.
+
+Los pedidos, índices de pagos y cursor de reconciliación Sandbox usan el prefijo privado `sandbox/`, separado de los pedidos reales. `BOOK_SANDBOX_TEST_ENABLED=true` sólo permite preparar pruebas en Preview, en modo Sandbox y con `BOOK_SANDBOX_TEST_EMAIL=italicia.edu@gmail.com`; el servidor rechaza otros destinatarios. No habilita producción ni sustituye `BOOK_DELIVERY_VERIFIED`. Preview también rechaza el modo Live. La página de compra muestra una advertencia Sandbox y no ofrece enlaces reales cuando el medio de prueba está incompleto.
+
+Diez pruebas locales y la compilación aprobaron. La clave Sandbox guardada mediante copia y pegado automático fue rechazada por PayPal con HTTP **401**; se requiere pegar la clave real directamente en el secreto de Preview. No se creó ni capturó ningún pedido y no se envió ningún correo de compra. La prueba temporal de autenticación fue retirada del código.
+
+El Preview conserva Vercel Authentication. El webhook externo de Sandbox aún no puede acceder a esa vista protegida. La revisión automática rechazó crear un secreto de excepción que ampliaría el acceso al proyecto; no se ejecutó esa creación y no se modificó la protección. Las consultas autenticadas de Vercel siguen disponibles para probar el recorrido desde la página de resultado, una vez corregida la clave.
+
 `npm run test:commerce` comprueba precios, firmas alteradas, pedidos cruzados, expiración, pagos pendientes/reembolsados, concurrencia de entregas, reintentos y rechazo de solicitudes HTTP no autorizadas. El almacén de estas pruebas es simulado; no sustituye la prueba de escrituras condicionales de Blob ni los proveedores reales.
 
 `npm run build` incluye las funciones de compra, descarga, webhooks y reconciliación. No hacer transacciones reales para comprobar la implementación sin autorización específica.

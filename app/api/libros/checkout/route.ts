@@ -1,4 +1,4 @@
-import { checkoutReady, paymentMode } from '@/lib/commerce/config'
+import { checkoutEmailAllowed, checkoutReady, paymentMode } from '@/lib/commerce/config'
 import { currencyFor, getProduct, isProvider, normalizeEmail } from '@/lib/commerce/products'
 import { newOrderId } from '@/lib/commerce/security'
 import { orderStore, privatePdf } from '@/lib/commerce/store'
@@ -18,6 +18,7 @@ export async function POST(request: Request) {
   const email = normalizeEmail(body.email)
   if (!product || !isProvider(provider) || !email || normalizeEmail(body.emailConfirmation) !== email) return json({ error: 'Revisá el material y repetí tu correo electrónico.' }, 400)
   if (!checkoutReady(product.id, provider)) return json({ error: 'Esta compra todavía se coordina con Alicia. Volvé a Materiales para consultar.' }, 503)
+  if (!checkoutEmailAllowed(email)) return json({ error: 'Esta prueba sólo admite el correo de Italicia.' }, 403)
   try {
     // A configured filename is not proof that the PDF was uploaded. Check before sending anyone to pay.
     const pdf = await privatePdf(required(product.pdfEnv))
