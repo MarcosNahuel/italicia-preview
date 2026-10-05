@@ -10,8 +10,6 @@ const navLinks = [
   { href: '/cursos/', label: 'Cursos' },
   { href: '/materiales/', label: 'Materiales' },
   { href: '/vittoria/', label: 'Vittoria IA' },
-  { href: '/guia-italiano/', label: 'Guia Gratis' },
-  { href: '/blog/', label: 'Blog' },
   { href: '/#contacto', label: 'Contacto' },
 ]
 

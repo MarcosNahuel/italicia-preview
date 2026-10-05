@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer className="bg-primary-950 text-white py-16">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {/* Brand */}
           <div className="md:col-span-1">
             <h3 className="text-2xl font-bold mb-4">ItalicIA</h3>
@@ -56,35 +56,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog/" className="text-gray-400 hover:text-white transition-colors">
-                  Blog
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h4 className="font-semibold mb-4 text-accent-400">Recursos</h4>
-            <ul className="space-y-2">
-              <li>
                 <Link href="/materiales/" className="text-gray-400 hover:text-white transition-colors">
                   Materiales y lecturas
-                </Link>
-              </li>
-              <li>
-                <Link href="/guia-italiano/" className="text-gray-400 hover:text-white transition-colors">
-                  Guia Gratuita
-                </Link>
-              </li>
-              <li>
-                <Link href="/#certificaciones" className="text-gray-400 hover:text-white transition-colors">
-                  Certificaciones
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy/" className="text-gray-400 hover:text-white transition-colors">
-                  Privacidad
                 </Link>
               </li>
             </ul>
@@ -113,6 +86,7 @@ export default function Footer() {
         <div className="border-t border-primary-800 mt-12 pt-8 text-center text-gray-500">
           <p>&copy; {currentYear} ItalicIA. Todos los derechos reservados.</p>
           <p className="mt-2 text-sm">Mendoza, Argentina</p>
+          <Link href="/privacy/" className="inline-block mt-3 text-sm hover:text-white transition-colors">Privacidad</Link>
         </div>
       </div>
     </footer>

@@ -40,7 +40,7 @@ const faqs = [
   {
     question: '¿Vittoria es gratuita?',
     answer:
-      'Vittoria tiene acceso pago en WhatsApp. Consultá con Alicia el precio y qué incluye el servicio antes de contratarlo. La guía para empezar a aprender italiano sigue siendo gratuita y está disponible en la web.',
+      'Vittoria tiene acceso pago en WhatsApp. Consultá con Alicia el precio y qué incluye el servicio antes de contratarlo.',
   },
   {
     question: '¿La IA reemplaza a los profesores humanos?',

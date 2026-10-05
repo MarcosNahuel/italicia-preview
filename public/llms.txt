@@ -26,12 +26,6 @@ Vittoria es la tutora virtual de Italicia para practicar italiano con IA en What
 - El contacto de Alicia no es el número directo del bot.
 - Información: https://www.italicia.com/vittoria/
 
-## Guía gratuita
-
-La guía de italiano sigue siendo gratuita y se puede usar sin contratar Vittoria.
-Incluye vocabulario, errores comunes, pronunciación y un plan de estudio.
-https://www.italicia.com/guia-italiano/
-
 ## Contacto
 
 - Alicia Alejandra Tapia, profesora de italiano y portugués, Mendoza, Argentina.

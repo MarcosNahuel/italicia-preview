@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { MessageCircle, BookOpen, PenTool, ArrowRight } from 'lucide-react'
 import SchemaOrg from '@/components/SchemaOrg'
 import { vittoriaContactUrl, vittoriaSchema } from '@/lib/vittoria'
@@ -93,13 +92,6 @@ export default function VittoriaPage() {
         </div>
       </section>
 
-      <section className="py-12 bg-accent-50">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">También podés empezar con la guía gratuita</h2>
-          <p className="text-gray-600 mb-6">La guía de italiano sigue disponible para estudiar por tu cuenta. El acceso a Vittoria se contrata por separado.</p>
-          <Link href="/guia-italiano/" className="font-semibold text-accent-700 underline underline-offset-4">Ver la guía gratuita</Link>
-        </div>
-      </section>
     </>
   )
 }

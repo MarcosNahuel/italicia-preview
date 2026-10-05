@@ -8,7 +8,6 @@ import MaterialsPreview from '@/components/MaterialsPreview'
 import Methodology from '@/components/Methodology'
 import Certifications from '@/components/Certifications'
 import FAQSection from '@/components/FAQSection'
-import BlogSection from '@/components/BlogSection'
 import ContactSection from '@/components/ContactSection'
 import SchemaOrg from '@/components/SchemaOrg'
 import { courses } from '@/lib/catalog'
@@ -17,7 +16,7 @@ import { vittoriaSchema } from '@/lib/vittoria'
 export const metadata: Metadata = {
   title: 'Italicia - Cursos de italiano y materiales con Alicia',
   description:
-    'Aprendé italiano con Alicia: cursos A1, A2 y conversación. Conocé los manuales, las lecturas y los recursos de Italicia para seguir practicando entre clases.',
+    'Aprendé italiano con Alicia: cursos A1, A2 y conversación. Conocé los manuales y las lecturas de Italicia para seguir practicando entre clases.',
   keywords: [
     'aprender italiano',
     'italiano con IA',
@@ -78,7 +77,6 @@ export default function HomePage() {
       <Methodology />
       <Certifications />
       <FAQSection />
-      <BlogSection />
       <ContactSection />
     </>
   )
