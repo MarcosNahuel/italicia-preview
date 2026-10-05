@@ -8,6 +8,7 @@ import { confirmPayment, deliverEmail } from '../lib/commerce/fulfillment'
 import { checkoutEmailAllowed, commerceStoragePrefix, configurationIssues, sandboxTesting } from '../lib/commerce/config'
 import type { Order, OrderStore } from '../lib/commerce/orders'
 import type { MpPayment, PaypalOrder, PaypalCapture } from '../lib/commerce/validation'
+import { paypalWebhookReference } from '../lib/commerce/paypal-events'
 
 const secret = 'test-only-secret-with-more-than-32-characters'
 const order = (provider: Order['provider'] = 'mercadoPago'): Order => ({ version: 1, id: newOrderId(), productId: 'lectura-a1', provider, email: 'buyer@example.com', amount: provider === 'mercadoPago' ? 990000 : 1000, currency: currencyFor(provider), mode: 'sandbox', createdAt: new Date().toISOString(), status: 'pending', providerOrderId: 'ABC123' })
@@ -22,6 +23,7 @@ class MemoryStore implements OrderStore {
   async claimPayment(provider: Order['provider'], paymentId: string, orderId: string) { const key = `${provider}:${paymentId}`; if (this.payments.has(key) && this.payments.get(key) !== orderId) throw new Error('payment reused'); this.payments.set(key, orderId) }
   async indexProviderOrder(provider: Order['provider'], remoteId: string, id: string) { this.index.set(`${provider}:${remoteId}`, id) }
   async findByProviderOrder(provider: Order['provider'], remoteId: string) { return this.index.get(`${provider}:${remoteId}`) ?? null }
+  async findByPayment(provider: Order['provider'], remoteId: string) { return this.payments.get(`${provider}:${remoteId}`) ?? null }
 }
 
 test('the four prices are the confirmed catalog prices, with no A2 paid product', () => {
@@ -63,6 +65,22 @@ test('MP signatures reject missing, modified and mismatched notifications', () =
   assert.equal(verifyMpSignature(headers, '124', secret), false)
   assert.equal(verifyMpSignature(headers, '123', 'wrong'), false)
   assert.equal(verifyMpSignature(new Headers(), '123', secret), false)
+})
+
+test('PayPal refund notices resolve the original capture even without an order ID', async () => {
+  const store = new MemoryStore(), expected = order('paypal')
+  await store.create(expected)
+  await confirmPayment(store, expected.id, 'CAPTURE1')
+  const refund = { event_type: 'PAYMENT.CAPTURE.REFUNDED', resource: { id: 'REFUND1', supplementary_data: { related_ids: { capture_id: 'CAPTURE1' } } } }
+  const reference = paypalWebhookReference(refund, 'sandbox')
+  assert.equal(reference.orderId, undefined)
+  assert.equal(await store.findByPayment('paypal', reference.captureId!), expected.id)
+  assert.equal(await store.findByPayment('mercadoPago', reference.captureId!), null)
+  assert.equal(paypalWebhookReference({ event_type: refund.event_type, resource: { id: 'REFUND1' } }, 'sandbox').captureId, undefined)
+  const linkOnly = (href: string) => ({ event_type: refund.event_type, resource: { id: 'REFUND1', links: [{ rel: 'up', href }] } })
+  assert.equal(paypalWebhookReference(linkOnly('https://api.sandbox.paypal.com/v2/payments/captures/CAPTURE1'), 'sandbox').captureId, 'CAPTURE1')
+  for (const href of ['https://foreign.example/v2/payments/captures/CAPTURE1', 'https://api.sandbox.paypal.com.evil.example/v2/payments/captures/CAPTURE1', 'https://api.sandbox.paypal.com/v2/payments/captures/CAPTURE1?redirect=x', 'http://api.sandbox.paypal.com/v2/payments/captures/CAPTURE1']) assert.equal(paypalWebhookReference(linkOnly(href), 'sandbox').captureId, undefined)
+  assert.equal(paypalWebhookReference(linkOnly('https://api.sandbox.paypal.com/v2/payments/captures/CAPTURE1'), 'live').captureId, undefined)
 })
 
 test('download tokens expire, cannot cross orders, and status tokens never authorize downloads', () => {

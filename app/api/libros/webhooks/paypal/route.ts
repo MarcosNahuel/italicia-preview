@@ -2,6 +2,8 @@ import { verifyPaypalWebhook } from '@/lib/commerce/providers'
 import { orderStore } from '@/lib/commerce/store'
 import { reconcileOrder } from '@/lib/commerce/service'
 import { json, smallJson } from '@/lib/commerce/http'
+import { paymentMode } from '@/lib/commerce/config'
+import { paypalWebhookReference } from '@/lib/commerce/paypal-events'
 
 export const runtime = 'nodejs'
 export const maxDuration = 90
@@ -11,10 +13,10 @@ export async function POST(request: Request) {
     if (!(await verifyPaypalWebhook(request.headers, event))) return json({ error: 'Invalid signature' }, 401)
     const type = String(event.event_type ?? '')
     if (!['CHECKOUT.ORDER.APPROVED', 'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.CAPTURE.PENDING', 'PAYMENT.CAPTURE.DENIED', 'PAYMENT.CAPTURE.REFUNDED', 'PAYMENT.CAPTURE.REVERSED'].includes(type)) return json({ received: true })
-    const resource = event.resource as { id?: string; supplementary_data?: { related_ids?: { order_id?: string } } } | undefined
-    const remoteId = type === 'CHECKOUT.ORDER.APPROVED' ? resource?.id : resource?.supplementary_data?.related_ids?.order_id
-    if (!remoteId) return json({ error: 'Order ID missing' }, 503)
-    const id = await orderStore.findByProviderOrder('paypal', remoteId)
+    const reference = paypalWebhookReference(event, paymentMode())
+    if (!reference.orderId && !reference.captureId) return json({ error: 'Payment reference missing' }, 503)
+    const id = (reference.orderId ? await orderStore.findByProviderOrder('paypal', reference.orderId) : null)
+      ?? (reference.captureId ? await orderStore.findByPayment('paypal', reference.captureId) : null)
     if (id) {
       const order = await orderStore.read(id)
       if (order) {

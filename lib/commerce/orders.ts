@@ -28,5 +28,6 @@ export interface OrderStore {
   update(id: string, change: (order: Order) => Order): Promise<Order>
   claimPayment(provider: Provider, paymentId: string, orderId: string): Promise<void>
   findByProviderOrder(provider: Provider, id: string): Promise<string | null>
+  findByPayment(provider: Provider, id: string): Promise<string | null>
   indexProviderOrder(provider: Provider, providerOrderId: string, orderId: string): Promise<void>
 }

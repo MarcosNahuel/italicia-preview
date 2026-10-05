@@ -55,6 +55,7 @@ export const orderStore: OrderStore = {
   async claimPayment(provider, paymentId, orderId) { await uniqueIndex(providerPath('payments', provider, paymentId), orderId) },
   async indexProviderOrder(provider, providerOrderId, orderId) { await uniqueIndex(providerPath('provider-orders', provider, providerOrderId), orderId) },
   async findByProviderOrder(provider, id) { return (await readJson<{ orderId: string }>(providerPath('provider-orders', provider, id)))?.value.orderId ?? null },
+  async findByPayment(provider, id) { return (await readJson<{ orderId: string }>(providerPath('payments', provider, id)))?.value.orderId ?? null },
 }
 
 export async function orderBatch(cursor?: string) {
