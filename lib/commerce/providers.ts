@@ -28,7 +28,8 @@ export async function createProviderCheckout(order: Order) {
   const product = getProduct(order.productId)!
   const back = resultUrl(order)
   if (order.provider === 'mercadoPago') {
-    const preference = await api<{ id: string; init_point: string; sandbox_init_point: string }>('https://api.mercadopago.com/checkout/preferences', {
+    if (order.mode === 'sandbox' && !await verifiedConfiguredMpTestMerchant()) throw new Error('Fictitious merchant required for Sandbox')
+    const preference = await api<{ id: string; init_point: string }>('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST', headers: { ...mpHeaders(), 'X-Idempotency-Key': order.id },
       body: JSON.stringify({
         items: [{ id: product.id, title: product.title, quantity: 1, currency_id: order.currency, unit_price: order.amount / 100, category_id: 'ebooks' }],
@@ -38,7 +39,8 @@ export async function createProviderCheckout(order: Order) {
         back_urls: { success: back, pending: back, failure: back }, auto_return: 'approved',
       }),
     })
-    return { id: preference.id, url: order.mode === 'live' ? preference.init_point : preference.sandbox_init_point }
+    // Test users use MP's regular checkout on the fictitious merchant account.
+    return { id: preference.id, url: preference.init_point }
   }
   const remote = await api<PaypalOrder>(`${ppBase()}/v2/checkout/orders`, {
     method: 'POST', headers: { ...await paypalHeaders(), 'PayPal-Request-Id': order.id },
@@ -63,8 +65,12 @@ export async function verifiedMpTestMerchant(payment: MpPayment) {
   if (!sandboxTesting() || String(payment.collector_id) !== required('MP_MERCHANT_ID')) return false
   // Fictitious seller credentials can report live_mode=true. Verify the account
   // with MP itself before allowing that case inside the isolated Preview store.
-  const merchant = await api<{ id: string | number; tags?: string[] }>('https://api.mercadopago.com/users/me', { headers: mpHeaders() })
-  return String(merchant.id) === String(payment.collector_id) && merchant.tags?.includes('test_user') === true
+  return verifiedConfiguredMpTestMerchant()
+}
+async function verifiedConfiguredMpTestMerchant() {
+  if (!sandboxTesting()) return false
+  const merchant = await api<{ id: string | number; site_id?: string; tags?: string[] }>('https://api.mercadopago.com/users/me', { headers: mpHeaders() })
+  return String(merchant.id) === required('MP_MERCHANT_ID') && merchant.site_id === 'MLA' && merchant.tags?.includes('test_user') === true
 }
 export async function mpPreferenceMatches(payment: MpPayment, order: Order) {
   if (!payment.order?.id || !order.providerOrderId) return false
@@ -97,6 +103,23 @@ export async function verifyPaypalWebhook(headers: Headers, event: unknown) {
     method: 'POST', headers: await paypalHeaders(), body: JSON.stringify({ ...info, webhook_id: required('PAYPAL_WEBHOOK_ID'), webhook_event: event }),
   })
   return verification.verification_status === 'SUCCESS'
+}
+
+// Read-only operational checks run inside Vercel; credentials never leave the server.
+export async function verifyProviderConfiguration() {
+  const checks = await Promise.allSettled([
+    api<{ id: string | number; site_id?: string; tags?: string[] }>('https://api.mercadopago.com/users/me', { headers: mpHeaders() }),
+    (async () => {
+      const headers = await paypalHeaders()
+      return api<{ id: string; url: string; event_types?: { name: string }[] }>(`${ppBase()}/v1/notifications/webhooks/${encodeURIComponent(required('PAYPAL_WEBHOOK_ID'))}`, { headers })
+    })(),
+  ])
+  const mp = checks[0], pp = checks[1]
+  const events = ['CHECKOUT.ORDER.APPROVED', 'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.CAPTURE.PENDING', 'PAYMENT.CAPTURE.DENIED', 'PAYMENT.CAPTURE.REFUNDED', 'PAYMENT.CAPTURE.REVERSED']
+  return {
+    mercadoPago: { merchantVerified: mp.status === 'fulfilled' && String(mp.value.id) === required('MP_MERCHANT_ID') && mp.value.site_id === 'MLA' && (paymentMode() === 'live' ? !mp.value.tags?.includes('test_user') : mp.value.tags?.includes('test_user') === true) },
+    paypal: { authenticated: pp.status === 'fulfilled', webhookVerified: pp.status === 'fulfilled' && pp.value.id === required('PAYPAL_WEBHOOK_ID') && pp.value.url === `${siteUrl()}/api/libros/webhooks/paypal/` && events.every(event => pp.value.event_types?.some(item => item.name === event)) },
+  }
 }
 
 export function validCheckoutUrl(value: string, provider: Order['provider'], mode: Order['mode']) {

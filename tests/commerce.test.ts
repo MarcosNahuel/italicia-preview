@@ -47,11 +47,12 @@ test('Mercado Pago requires an approved exact payment from the configured mercha
 
 test('MP Sandbox keeps the real delivery inbox out of the fictitious payer account', async () => {
   const previousFetch = globalThis.fetch
-  const keys = ['MP_ACCESS_TOKEN', 'BOOK_TOKEN_SECRET'] as const
+  const keys = ['MP_ACCESS_TOKEN', 'BOOK_TOKEN_SECRET', 'VERCEL_ENV', 'BOOK_PAYMENT_MODE', 'BOOK_SANDBOX_TEST_ENABLED', 'BOOK_SANDBOX_TEST_EMAIL', 'MP_MERCHANT_ID'] as const
   const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]))
-  Object.assign(process.env, { MP_ACCESS_TOKEN: 'test-only-token', BOOK_TOKEN_SECRET: secret })
+  Object.assign(process.env, { MP_ACCESS_TOKEN: 'test-only-token', BOOK_TOKEN_SECRET: secret, VERCEL_ENV: 'preview', BOOK_PAYMENT_MODE: 'sandbox', BOOK_SANDBOX_TEST_ENABLED: 'true', BOOK_SANDBOX_TEST_EMAIL: 'italicia.edu@gmail.com', MP_MERCHANT_ID: '456' })
   const requests: Record<string, unknown>[] = []
   globalThis.fetch = (async (url, init) => {
+    if (url === 'https://api.mercadopago.com/users/me') return Response.json({ id: 456, site_id: 'MLA', tags: ['test_user'] })
     assert.equal(url, 'https://api.mercadopago.com/checkout/preferences')
     assert.equal(init?.method, 'POST')
     requests.push(JSON.parse(String(init?.body)))
@@ -59,7 +60,7 @@ test('MP Sandbox keeps the real delivery inbox out of the fictitious payer accou
   }) as typeof fetch
   try {
     const expected = { ...order(), email: 'italicia.edu@gmail.com' }
-    assert.equal((await createProviderCheckout(expected)).url, 'https://sandbox.mercadopago.com.ar/test')
+    assert.equal((await createProviderCheckout(expected)).url, 'https://www.mercadopago.com.ar/test')
     assert.equal(requests[0].payer, undefined)
     assert.equal(requests[0].external_reference, expected.id)
     assert.equal((await createProviderCheckout({ ...expected, mode: 'live' })).url, 'https://www.mercadopago.com.ar/test')
@@ -75,7 +76,7 @@ test('an MP live_mode flag needs API-verified fictitious merchant credentials in
   const keys = ['VERCEL_ENV', 'BOOK_PAYMENT_MODE', 'BOOK_SANDBOX_TEST_ENABLED', 'BOOK_SANDBOX_TEST_EMAIL', 'MP_ACCESS_TOKEN', 'MP_MERCHANT_ID'] as const
   const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]))
   Object.assign(process.env, { VERCEL_ENV: 'preview', BOOK_PAYMENT_MODE: 'sandbox', BOOK_SANDBOX_TEST_ENABLED: 'true', BOOK_SANDBOX_TEST_EMAIL: 'italicia.edu@gmail.com', MP_ACCESS_TOKEN: 'test-only-token', MP_MERCHANT_ID: '456' })
-  let merchant = { id: 456, tags: ['test_user'] }
+  let merchant = { id: 456, site_id: 'MLA', tags: ['test_user'] }
   globalThis.fetch = (async (url) => { assert.equal(url, 'https://api.mercadopago.com/users/me'); return Response.json(merchant) }) as typeof fetch
   try {
     const expected = order()
@@ -85,14 +86,35 @@ test('an MP live_mode flag needs API-verified fictitious merchant credentials in
     assert.equal(validateMpPayment(expected, payment, '456', await verifiedMpTestMerchant(payment)), true)
     assert.equal(validateMpPayment(expected, { ...payment, transaction_amount: 1 }, '456', true), false)
     assert.equal(validateMpPayment({ ...expected, mode: 'live' }, { ...payment, live_mode: false }, '456', true), false)
-    merchant = { id: 456, tags: [] }
+    merchant = { id: 456, site_id: 'MLA', tags: [] }
     assert.equal(await verifiedMpTestMerchant(payment), false)
-    merchant = { id: 999, tags: ['test_user'] }
+    merchant = { id: 999, site_id: 'MLA', tags: ['test_user'] }
     assert.equal(await verifiedMpTestMerchant(payment), false)
     process.env.VERCEL_ENV = 'production'
     assert.equal(await verifiedMpTestMerchant(payment), false)
     process.env.VERCEL_ENV = 'preview'; process.env.BOOK_PAYMENT_MODE = 'live'
     assert.equal(await verifiedMpTestMerchant(payment), false)
+  } finally {
+    globalThis.fetch = previousFetch
+    for (const key of keys) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key] }
+  }
+})
+
+test('Sandbox never creates an MP preference for real, foreign or mismatched sellers, or in production', async () => {
+  const previousFetch = globalThis.fetch
+  const keys = ['VERCEL_ENV', 'BOOK_PAYMENT_MODE', 'BOOK_SANDBOX_TEST_ENABLED', 'BOOK_SANDBOX_TEST_EMAIL', 'MP_ACCESS_TOKEN', 'MP_MERCHANT_ID', 'BOOK_TOKEN_SECRET'] as const
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]))
+  Object.assign(process.env, { VERCEL_ENV: 'preview', BOOK_PAYMENT_MODE: 'sandbox', BOOK_SANDBOX_TEST_ENABLED: 'true', BOOK_SANDBOX_TEST_EMAIL: 'italicia.edu@gmail.com', MP_ACCESS_TOKEN: 'test-only-token', MP_MERCHANT_ID: '456', BOOK_TOKEN_SECRET: secret })
+  let merchant = { id: 456, site_id: 'MLA', tags: [] as string[] }
+  globalThis.fetch = (async (url) => { assert.equal(url, 'https://api.mercadopago.com/users/me', 'Unsafe seller must be rejected before creating a preference'); return Response.json(merchant) }) as typeof fetch
+  try {
+    for (const candidate of [{ id: 456, site_id: 'MLA', tags: [] }, { id: 999, site_id: 'MLA', tags: ['test_user'] }, { id: 456, site_id: 'MLB', tags: ['test_user'] }]) {
+      merchant = candidate
+      await assert.rejects(() => createProviderCheckout(order()), /Fictitious merchant required/)
+    }
+    merchant = { id: 456, site_id: 'MLA', tags: ['test_user'] }
+    process.env.VERCEL_ENV = 'production'
+    await assert.rejects(() => createProviderCheckout(order()), /Fictitious merchant required/)
   } finally {
     globalThis.fetch = previousFetch
     for (const key of keys) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key] }
@@ -223,6 +245,7 @@ test('HTTP routes reject foreign origins, disabled purchases, forged downloads a
   const checkout = await import('../app/api/libros/checkout/route')
   const download = await import('../app/api/libros/descarga/route')
   const job = await import('../app/api/libros/reconciliar/route')
+  const configuration = await import('../app/api/libros/verificar-configuracion/route')
   const previous = { secret: process.env.BOOK_TOKEN_SECRET, verified: process.env.BOOK_DELIVERY_VERIFIED }
   process.env.BOOK_TOKEN_SECRET = secret
   process.env.BOOK_DELIVERY_VERIFIED = 'false'
@@ -236,6 +259,7 @@ test('HTTP routes reject foreign origins, disabled purchases, forged downloads a
     assert.equal(refused.status, 403)
     assert.equal(refused.headers.get('cache-control'), 'private, no-store, max-age=0')
     assert.equal((await job.GET(new Request('https://www.italicia.com/api/libros/reconciliar/'))).status, 401)
+    assert.equal((await configuration.GET(new Request('https://www.italicia.com/api/libros/verificar-configuracion/'))).status, 401)
   } finally {
     if (previous.secret === undefined) delete process.env.BOOK_TOKEN_SECRET; else process.env.BOOK_TOKEN_SECRET = previous.secret
     if (previous.verified === undefined) delete process.env.BOOK_DELIVERY_VERIFIED; else process.env.BOOK_DELIVERY_VERIFIED = previous.verified

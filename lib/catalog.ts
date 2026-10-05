@@ -19,11 +19,15 @@ export const courses = [
 
 export const materials = [
   { id: 'manual-a1', tag: 'Manual A1', title: 'Manual de italiano A1',
+    cover: { src: '/images/libros/manual-a1.jpg', width: 1414, height: 2000, alt: 'Portada de Italiano A1 per studenti internazionali, de Alicia Alejandra Tapia' },
+    video: { id: '2FsKmQyugsk', title: 'Presentación del manual A1' },
     description: 'Tu material para empezar desde cero y trabajar el italiano a partir de situaciones cotidianas, con lectura, vocabulario, gramática y actividades.',
     price: { ars: 19900, usd: 13, launchOffer: false },
     features: ['Enfoque comunicativo', 'Actividades para practicar', 'Recursos para acompañar las clases'],
     action: 'Consultar por el manual', href: '/#contacto' },
   { id: 'lectura-a1', tag: 'Lectura A1', title: 'Un’argentina in Italia', subtitle: 'Una nuova vita a Roma',
+    cover: { src: '/images/libros/un-argentina-in-italia.png', width: 1024, height: 1536, alt: 'Portada de Un’argentina in Italia: Vittoria en Roma con su maleta y cuaderno' },
+    video: { id: 'nmiS8t67t0M', title: 'Presentación de la colección Un’argentina in Italia' },
     description: 'Acompañá a Vittoria en una historia que une Mendoza e Italia. Una lectura ilustrada para practicar italiano a tu ritmo.',
     price: { ars: 9900, usd: 10, launchOffer: true },
     features: ['Capítulos ilustrados', 'Audios para acompañar la lectura', 'Actividades, vocabulario y soluciones'],
