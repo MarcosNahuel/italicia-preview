@@ -30,11 +30,11 @@ export interface PaypalOrder {
   links?: Array<{ rel: string; href: string }>
 }
 
-export function validateMpPayment(order: Order, payment: MpPayment, merchantId: string): boolean {
+export function validateMpPayment(order: Order, payment: MpPayment, merchantId: string, verifiedTestMerchant = false): boolean {
   return order.provider === 'mercadoPago' && payment.status === 'approved' &&
     payment.external_reference === order.id && cents(payment.transaction_amount) === order.amount &&
     payment.currency_id === order.currency && String(payment.collector_id) === merchantId &&
-    payment.live_mode === (order.mode === 'live') &&
+    (payment.live_mode === (order.mode === 'live') || (order.mode === 'sandbox' && verifiedTestMerchant)) &&
     (payment.transaction_amount_refunded ?? 0) === 0 &&
     (!order.paymentId || order.paymentId === String(payment.id))
 }

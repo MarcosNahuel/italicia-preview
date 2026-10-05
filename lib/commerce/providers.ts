@@ -1,5 +1,5 @@
 import 'server-only'
-import { required, paymentMode, siteUrl } from './config'
+import { required, paymentMode, siteUrl, sandboxTesting } from './config'
 import { orderAccess } from './security'
 import { getProduct } from './products'
 import type { Order } from './orders'
@@ -32,7 +32,8 @@ export async function createProviderCheckout(order: Order) {
       method: 'POST', headers: { ...mpHeaders(), 'X-Idempotency-Key': order.id },
       body: JSON.stringify({
         items: [{ id: product.id, title: product.title, quantity: 1, currency_id: order.currency, unit_price: order.amount / 100, category_id: 'ebooks' }],
-        payer: { email: order.email }, external_reference: order.id,
+        // Sandbox uses the signed-in fictitious buyer; the delivery inbox is real.
+        ...(order.mode === 'live' ? { payer: { email: order.email } } : {}), external_reference: order.id,
         notification_url: `${siteUrl()}/api/libros/webhooks/mercadopago/`,
         back_urls: { success: back, pending: back, failure: back }, auto_return: 'approved',
       }),
@@ -57,6 +58,13 @@ export async function createProviderCheckout(order: Order) {
 export async function getMpPayment(id: string) {
   if (!/^\d{1,30}$/.test(id)) throw new Error('Invalid payment ID')
   return api<MpPayment>(`https://api.mercadopago.com/v1/payments/${id}`, { headers: mpHeaders() })
+}
+export async function verifiedMpTestMerchant(payment: MpPayment) {
+  if (!sandboxTesting() || String(payment.collector_id) !== required('MP_MERCHANT_ID')) return false
+  // Fictitious seller credentials can report live_mode=true. Verify the account
+  // with MP itself before allowing that case inside the isolated Preview store.
+  const merchant = await api<{ id: string | number; tags?: string[] }>('https://api.mercadopago.com/users/me', { headers: mpHeaders() })
+  return String(merchant.id) === String(payment.collector_id) && merchant.tags?.includes('test_user') === true
 }
 export async function mpPreferenceMatches(payment: MpPayment, order: Order) {
   if (!payment.order?.id || !order.providerOrderId) return false

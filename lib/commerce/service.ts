@@ -3,7 +3,7 @@ import { required, paymentMode } from './config'
 import { orderStore } from './store'
 import { confirmPayment, deliverEmail } from './fulfillment'
 import { sendBookEmail } from './email'
-import { capturePaypalOrder, findMpPayments, getMpPayment, getPaypalCapture, getPaypalOrder, mpPreferenceMatches } from './providers'
+import { capturePaypalOrder, findMpPayments, getMpPayment, getPaypalCapture, getPaypalOrder, mpPreferenceMatches, verifiedMpTestMerchant } from './providers'
 import { validateMpPayment, validatePaypalPayment } from './validation'
 import type { MpPayment } from './validation'
 import type { Order } from './orders'
@@ -22,7 +22,8 @@ async function processMpPayment(payment: MpPayment, expectedId?: string, sendEma
     if (order.paymentId === String(payment.id)) return orderStore.update(id, current => ({ ...current, status: 'revoked' }))
     return order
   }
-  if (!validateMpPayment(order, payment, required('MP_MERCHANT_ID'))) {
+  const testMerchant = order.mode === 'sandbox' && payment.live_mode === true ? await verifiedMpTestMerchant(payment) : false
+  if (!validateMpPayment(order, payment, required('MP_MERCHANT_ID'), testMerchant)) {
     if (order.status === 'paid') throw new Error('Payment no longer matches')
     return order
   }

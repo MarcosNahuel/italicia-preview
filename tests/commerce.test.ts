@@ -9,6 +9,7 @@ import { checkoutEmailAllowed, commerceStoragePrefix, configurationIssues, sandb
 import type { Order, OrderStore } from '../lib/commerce/orders'
 import type { MpPayment, PaypalOrder, PaypalCapture } from '../lib/commerce/validation'
 import { paypalWebhookReference } from '../lib/commerce/paypal-events'
+import { createProviderCheckout, verifiedMpTestMerchant } from '../lib/commerce/providers'
 
 const secret = 'test-only-secret-with-more-than-32-characters'
 const order = (provider: Order['provider'] = 'mercadoPago'): Order => ({ version: 1, id: newOrderId(), productId: 'lectura-a1', provider, email: 'buyer@example.com', amount: provider === 'mercadoPago' ? 990000 : 1000, currency: currencyFor(provider), mode: 'sandbox', createdAt: new Date().toISOString(), status: 'pending', providerOrderId: 'ABC123' })
@@ -42,6 +43,60 @@ test('Mercado Pago requires an approved exact payment from the configured mercha
   const payment: MpPayment = { id: 123, external_reference: expected.id, transaction_amount: 9900, currency_id: 'ARS', collector_id: 456, live_mode: false, status: 'approved' }
   assert.equal(validateMpPayment(expected, payment, '456'), true)
   for (const mutation of [{ status: 'pending' }, { status: 'rejected' }, { status: 'refunded' }, { transaction_amount: 10 }, { currency_id: 'USD' }, { collector_id: 999 }, { live_mode: true }, { external_reference: newOrderId() }, { transaction_amount_refunded: 1 }]) assert.equal(validateMpPayment(expected, { ...payment, ...mutation }, '456'), false)
+})
+
+test('MP Sandbox keeps the real delivery inbox out of the fictitious payer account', async () => {
+  const previousFetch = globalThis.fetch
+  const keys = ['MP_ACCESS_TOKEN', 'BOOK_TOKEN_SECRET'] as const
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]))
+  Object.assign(process.env, { MP_ACCESS_TOKEN: 'test-only-token', BOOK_TOKEN_SECRET: secret })
+  const requests: Record<string, unknown>[] = []
+  globalThis.fetch = (async (url, init) => {
+    assert.equal(url, 'https://api.mercadopago.com/checkout/preferences')
+    assert.equal(init?.method, 'POST')
+    requests.push(JSON.parse(String(init?.body)))
+    return Response.json({ id: 'PREF1', init_point: 'https://www.mercadopago.com.ar/test', sandbox_init_point: 'https://sandbox.mercadopago.com.ar/test' })
+  }) as typeof fetch
+  try {
+    const expected = { ...order(), email: 'italicia.edu@gmail.com' }
+    assert.equal((await createProviderCheckout(expected)).url, 'https://sandbox.mercadopago.com.ar/test')
+    assert.equal(requests[0].payer, undefined)
+    assert.equal(requests[0].external_reference, expected.id)
+    assert.equal((await createProviderCheckout({ ...expected, mode: 'live' })).url, 'https://www.mercadopago.com.ar/test')
+    assert.deepEqual(requests[1].payer, { email: expected.email })
+  } finally {
+    globalThis.fetch = previousFetch
+    for (const key of keys) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key] }
+  }
+})
+
+test('an MP live_mode flag needs API-verified fictitious merchant credentials inside Preview Sandbox', async () => {
+  const previousFetch = globalThis.fetch
+  const keys = ['VERCEL_ENV', 'BOOK_PAYMENT_MODE', 'BOOK_SANDBOX_TEST_ENABLED', 'BOOK_SANDBOX_TEST_EMAIL', 'MP_ACCESS_TOKEN', 'MP_MERCHANT_ID'] as const
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]))
+  Object.assign(process.env, { VERCEL_ENV: 'preview', BOOK_PAYMENT_MODE: 'sandbox', BOOK_SANDBOX_TEST_ENABLED: 'true', BOOK_SANDBOX_TEST_EMAIL: 'italicia.edu@gmail.com', MP_ACCESS_TOKEN: 'test-only-token', MP_MERCHANT_ID: '456' })
+  let merchant = { id: 456, tags: ['test_user'] }
+  globalThis.fetch = (async (url) => { assert.equal(url, 'https://api.mercadopago.com/users/me'); return Response.json(merchant) }) as typeof fetch
+  try {
+    const expected = order()
+    const payment: MpPayment = { id: 123, external_reference: expected.id, transaction_amount: 9900, currency_id: 'ARS', collector_id: 456, live_mode: true, status: 'approved' }
+    assert.equal(validateMpPayment(expected, payment, '456'), false)
+    assert.equal(await verifiedMpTestMerchant(payment), true)
+    assert.equal(validateMpPayment(expected, payment, '456', await verifiedMpTestMerchant(payment)), true)
+    assert.equal(validateMpPayment(expected, { ...payment, transaction_amount: 1 }, '456', true), false)
+    assert.equal(validateMpPayment({ ...expected, mode: 'live' }, { ...payment, live_mode: false }, '456', true), false)
+    merchant = { id: 456, tags: [] }
+    assert.equal(await verifiedMpTestMerchant(payment), false)
+    merchant = { id: 999, tags: ['test_user'] }
+    assert.equal(await verifiedMpTestMerchant(payment), false)
+    process.env.VERCEL_ENV = 'production'
+    assert.equal(await verifiedMpTestMerchant(payment), false)
+    process.env.VERCEL_ENV = 'preview'; process.env.BOOK_PAYMENT_MODE = 'live'
+    assert.equal(await verifiedMpTestMerchant(payment), false)
+  } finally {
+    globalThis.fetch = previousFetch
+    for (const key of keys) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key] }
+  }
 })
 
 test('PayPal approval alone and incorrect amounts, merchants, references, refunds, or reused captures cannot deliver', () => {
