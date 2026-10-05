@@ -12,6 +12,7 @@ import BlogSection from '@/components/BlogSection'
 import ContactSection from '@/components/ContactSection'
 import SchemaOrg from '@/components/SchemaOrg'
 import { courses } from '@/lib/catalog'
+import { vittoriaSchema } from '@/lib/vittoria'
 
 export const metadata: Metadata = {
   title: 'Italicia - Cursos de italiano y materiales con Alicia',
@@ -63,26 +64,11 @@ const personSchema = {
   knowsLanguage: ['es', 'it', 'pt'],
 }
 
-const softwareSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Vittoria - Tutor IA de Italiano',
-  applicationCategory: 'EducationalApplication',
-  operatingSystem: 'Telegram',
-  description:
-    'Tutor virtual de italiano basado en inteligencia artificial. Disponible 24/7 para practicar conversación, corregir errores, enseñar vocabulario y preparar para certificaciones.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'ARS',
-  },
-  url: 'https://t.me/ItaliciaBot',
-}
 
 export default function HomePage() {
   return (
     <>
-      <SchemaOrg schema={[courseSchema, personSchema, softwareSchema]} />
+      <SchemaOrg schema={[courseSchema, personSchema, vittoriaSchema]} />
       <HeroSection />
       <CoursesPreview />
       <MaterialsPreview />

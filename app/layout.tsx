@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     default: 'ItalicIA - Aprende Italiano con Inteligencia Artificial',
     template: '%s | ItalicIA',
   },
-  description: 'Plataforma argentina de aprendizaje de italiano con IA. Tutor virtual Vittoria disponible 24/7, clases personalizadas y certificaciones oficiales. Aprende italiano de forma inmersiva y efectiva.',
+  description: 'Aprendé italiano con Alicia: cursos A1, A2, conversación y materiales de Italicia. Vittoria en WhatsApp con acceso pago; consultá precio y activación.',
   keywords: [
     'aprender italiano',
     'italiano con IA',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     url: 'https://italicia.com',
     siteName: 'ItalicIA',
     title: 'ItalicIA - Aprende Italiano con Inteligencia Artificial',
-    description: 'Plataforma de aprendizaje de italiano con tutor IA 24/7. Clases personalizadas, certificaciones oficiales y método innovador.',
+    description: 'Cursos A1, A2 y conversación con Alicia. Manuales, lecturas y Vittoria en WhatsApp con acceso pago.',
     images: [
       {
         url: '/logo_italicia.png',
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'ItalicIA - Aprende Italiano con IA',
-    description: 'Plataforma de aprendizaje de italiano con tutor IA 24/7',
+    description: 'Italiano con Alicia y Vittoria en WhatsApp con acceso pago',
     images: ['/logo_italicia.png'],
   },
   verification: {
@@ -95,7 +95,6 @@ const organizationSchema = {
   sameAs: [
     'https://www.instagram.com/parla.con.italicia/',
     'https://facebook.com/profile.php?id=61555614825852',
-    'https://t.me/ItaliciaBot',
     'https://wa.me/5492615449532',
   ],
 }

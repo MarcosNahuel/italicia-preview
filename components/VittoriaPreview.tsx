@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Bot, Send, Sparkles, MessageCircle, CheckCircle2, Clock, Zap } from 'lucide-react'
+import { Bot, Send, Sparkles, MessageCircle, CheckCircle2, BookOpen, Zap } from 'lucide-react'
 import AnimatedSection from './AnimatedSection'
+import { vittoriaContactUrl } from '@/lib/vittoria'
 
 const chatMessages = [
   { type: 'bot', text: 'Ciao! 👋 Come stai oggi?' },
@@ -14,9 +15,9 @@ const chatMessages = [
 ]
 
 const features = [
-  { icon: MessageCircle, title: 'Conversación natural', desc: 'Practica como si hablaras con un nativo' },
-  { icon: CheckCircle2, title: 'Corrección inteligente', desc: 'Feedback instantáneo en gramática' },
-  { icon: Clock, title: 'Disponible 24/7', desc: 'Aprende cuando quieras, donde quieras' },
+  { icon: MessageCircle, title: 'Conversación natural', desc: 'Practicá situaciones cotidianas en italiano' },
+  { icon: CheckCircle2, title: 'Corrección inteligente', desc: 'Trabajá tus dudas de gramática' },
+  { icon: BookOpen, title: 'Acceso pago', desc: 'Consultá precio y activación con Alicia' },
   { icon: Zap, title: 'Adaptativo', desc: 'Se ajusta a tu nivel y ritmo' },
 ]
 
@@ -59,7 +60,7 @@ export default function VittoriaPreview() {
               <div>
                 <span className="inline-flex items-center gap-2 px-4 py-2 bg-accent-100 text-accent-700 rounded-full text-sm font-medium mb-4">
                   <Bot className="w-4 h-4" />
-                  Tutor IA
+                  WhatsApp · Acceso pago
                 </span>
                 <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                   Conocé a{' '}
@@ -68,9 +69,9 @@ export default function VittoriaPreview() {
                   </span>
                 </h2>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Tu tutora virtual de italiano disponible 24/7 en Telegram.
-                  Practica conversación, mejora tu gramática y aprende vocabulario
-                  de forma natural e interactiva.
+                  Tu tutora virtual de italiano en WhatsApp, con acceso pago.
+                  Practicá conversación, reforzá la gramática y aprendé vocabulario.
+                  Consultá con Alicia qué incluye y cómo activar tu acceso.
                 </p>
               </div>
 
@@ -94,13 +95,13 @@ export default function VittoriaPreview() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
-                  href="https://t.me/ItaliciaBot"
+                  href={vittoriaContactUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-accent-500 to-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-accent-500/25 hover:shadow-xl hover:shadow-accent-500/30 hover:-translate-y-0.5 transition-all"
                 >
                   <Send className="w-5 h-5" />
-                  Probar gratis en Telegram
+                  Consultar acceso y precio
                 </a>
                 <Link
                   href="/vittoria/"
@@ -130,7 +131,7 @@ export default function VittoriaPreview() {
                         <h4 className="text-white font-semibold text-sm">VittorIA</h4>
                         <p className="text-accent-400 text-xs flex items-center gap-1">
                           <span className="w-2 h-2 bg-accent-400 rounded-full animate-pulse" />
-                          En línea
+                          Ejemplo de práctica
                         </p>
                       </div>
                     </div>
@@ -173,9 +174,9 @@ export default function VittoriaPreview() {
                       <div className="flex-1 bg-[#242f3d] rounded-full px-4 py-2">
                         <span className="text-gray-500 text-sm">Escribí un mensaje...</span>
                       </div>
-                      <button className="w-10 h-10 rounded-full bg-accent-500 flex items-center justify-center hover:bg-accent-600 transition-colors">
+                      <div aria-hidden="true" className="w-10 h-10 rounded-full bg-accent-500 flex items-center justify-center hover:bg-accent-600 transition-colors">
                         <Send className="w-5 h-5 text-white" />
-                      </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -193,7 +194,7 @@ export default function VittoriaPreview() {
               <div className="absolute -right-4 bottom-1/4 bg-white rounded-2xl shadow-lg p-3 animate-float hidden lg:flex">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-amber-500" />
-                  <span className="text-sm font-medium text-gray-700">+50 XP</span>
+                  <span className="text-sm font-medium text-gray-700">Italiano paso a paso</span>
                 </div>
               </div>
             </div>

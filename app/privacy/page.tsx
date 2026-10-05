@@ -18,7 +18,7 @@ export default function PrivacyPage() {
 
           <div className="prose prose-gray max-w-none">
             <p className="text-gray-600 mb-6">
-              Última actualización: 4 de octubre de 2026
+              Última actualización: 5 de octubre de 2026
             </p>
 
             <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">1. Información que Recopilamos</h2>
@@ -46,14 +46,14 @@ export default function PrivacyPage() {
               <li>Confirmar las compras de materiales, entregar el PDF y resolver problemas de descarga. El correo de compra no se incorpora automáticamente a listas de publicidad.</li>
             </ul>
 
-            <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">3. Bot Vittoria (Telegram)</h2>
+            <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">3. Vittoria y consultas por WhatsApp</h2>
             <p className="text-gray-700 mb-4">
-              Cuando usás nuestro bot Vittoria en Telegram:
+              Vittoria se ofrece en WhatsApp con acceso pago. Para consultar el precio y la activación, contactás a Alicia por ese medio:
             </p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-              <li>Recopilamos tu ID de usuario de Telegram y nombre de usuario</li>
-              <li>Guardamos el historial de conversaciones para personalizar el aprendizaje</li>
-              <li>No compartimos esta información con terceros sin tu consentimiento</li>
+              <li>En las consultas por WhatsApp recibimos tu número, el nombre que mostrás y los mensajes que nos enviás</li>
+              <li>Usamos lo que nos compartís para responder tu consulta y coordinar el acceso. Antes de contratar, podés consultar cómo se tratan tus datos al usar Vittoria</li>
+              <li>Al abrir WhatsApp, también se aplican las condiciones y la política de privacidad de ese servicio</li>
               <li>Podés solicitar la eliminación de tus datos en cualquier momento</li>
             </ul>
 

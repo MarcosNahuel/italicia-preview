@@ -14,9 +14,10 @@ import {
 } from 'lucide-react'
 import SchemaOrg from '@/components/SchemaOrg'
 import PrintButton from '@/components/PrintButton'
+import { vittoriaContactUrl } from '@/lib/vittoria'
 
 export const metadata: Metadata = {
-  title: 'Guía Gratuita: Cómo Empezar a Aprender Italiano en 2025',
+  title: 'Guía Gratuita: Cómo Empezar a Aprender Italiano',
   description:
     'Guía completa y gratuita para aprender italiano desde cero. Incluye las 100 palabras más útiles, errores comunes a evitar, guía de pronunciación y plan de 30 días.',
   keywords: [
@@ -59,8 +60,8 @@ const howToSchema = {
     },
     {
       '@type': 'HowToStep',
-      name: 'Practica con IA',
-      text: 'Usa el tutor virtual Vittoria para practicar conversación',
+      name: 'Practica conversación',
+      text: 'Practicá conversación; como opción adicional, Vittoria en WhatsApp tiene acceso pago',
       position: 4,
     },
     {
@@ -272,7 +273,7 @@ const thirtyDayPlan = [
     'Practica las presentaciones (Mi chiamo, Sono di...)',
     'Memoriza los números del 0 al 10',
     'Estudia los pronombres personales (io, tu, lui/lei)',
-    'Practica con Vittoria: conversación de presentación',
+    'Practicá tu presentación en voz alta',
     'Repaso de lo aprendido',
     'Descanso activo: escucha música italiana',
   ]},
@@ -281,7 +282,7 @@ const thirtyDayPlan = [
     'Aprende "avere" (tener) en presente',
     'Memoriza los números del 11 al 20',
     'Estudia las preguntas básicas (Chi?, Dove?, Quando?)',
-    'Practica con Vittoria: preguntas y respuestas',
+    'Practicá preguntas y respuestas en voz alta',
     'Repaso de verbos',
     'Descanso activo: mira un video corto en italiano',
   ]},
@@ -290,7 +291,7 @@ const thirtyDayPlan = [
     'Aprende vocabulario de lugares',
     'Memoriza los días de la semana',
     'Estudia los artículos (il, la, lo, i, le, gli)',
-    'Practica con Vittoria: pedir en un restaurante',
+    'Practicá un diálogo para pedir en un restaurante',
     'Repaso de vocabulario',
     'Descanso activo: lee un menú italiano online',
   ]},
@@ -299,7 +300,7 @@ const thirtyDayPlan = [
     'Practica frases de supervivencia',
     'Memoriza expresiones de tiempo (oggi, domani, ieri)',
     'Estudia adjetivos básicos (grande, piccolo, bello)',
-    'Practica con Vittoria: conversación completa',
+    'Practicá una conversación completa',
     'Repaso general de las 4 semanas',
     'Evaluación: ¿Qué aprendiste? ¿Qué necesitas reforzar?',
   ]},
@@ -318,7 +319,7 @@ export default function GuiaItalianoPage() {
               GUÍA GRATUITA
             </span>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Cómo Empezar a Aprender Italiano en 2025
+              Cómo Empezar a Aprender Italiano
             </h1>
             <p className="text-xl text-gray-300 mb-8">
               Guía completa con las 100 palabras esenciales, errores a evitar, pronunciación y un plan de estudio de 30 días.
@@ -326,13 +327,13 @@ export default function GuiaItalianoPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <PrintButton />
               <a
-                href="https://t.me/ItaliciaBot"
+                href={vittoriaContactUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-secondary inline-flex items-center justify-center no-print"
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
-                Practicar con Vittoria
+                Consultar Vittoria (acceso pago)
               </a>
             </div>
           </div>
@@ -631,7 +632,7 @@ export default function GuiaItalianoPage() {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">💡 Consejo Práctico</h3>
                 <p className="text-gray-700">
                   La mejor manera de mejorar tu pronunciación es <strong>escuchar y repetir</strong>.
-                  Usa el bot Vittoria para practicar: te corregirá y te dará feedback en tiempo real.
+                  Si contratás el acceso pago a Vittoria en WhatsApp, podés sumar esa práctica a tu estudio.
                   También puedes escuchar música italiana, podcasts o ver series con subtítulos.
                 </p>
               </div>
@@ -645,12 +646,12 @@ export default function GuiaItalianoPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">
-              <span className="text-accent-600">5.</span> Cómo Usar Vittoria (Tu Tutor IA)
+              <span className="text-accent-600">5.</span> Vittoria en WhatsApp (Acceso Pago)
             </h2>
 
             <p className="text-gray-700 text-lg mb-8">
-              Vittoria es tu compañera de aprendizaje disponible 24/7 en Telegram.
-              Es una inteligencia artificial diseñada específicamente para ayudarte a aprender italiano.
+              Vittoria es la tutora virtual de Italicia en WhatsApp, con acceso pago.
+              Es una opción adicional para practicar italiano. Esta guía es gratuita y podés usarla sin contratar Vittoria.
             </p>
 
             <div className="grid md:grid-cols-2 gap-8 mb-8">
@@ -674,13 +675,13 @@ export default function GuiaItalianoPage() {
               </div>
 
               <div className="bg-[#e6ebee] rounded-xl p-4">
-                <div className="bg-[#0088cc] text-white p-3 rounded-t-lg -mx-4 -mt-4 mb-4 flex items-center">
+                <div className="bg-accent-600 text-white p-3 rounded-t-lg -mx-4 -mt-4 mb-4 flex items-center">
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mr-3">
                     <span className="font-bold">V</span>
                   </div>
                   <div>
                     <p className="font-bold">VittorIA</p>
-                    <p className="text-xs opacity-80">bot</p>
+                    <p className="text-xs opacity-80">Ejemplo de práctica</p>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -701,9 +702,9 @@ export default function GuiaItalianoPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-4">Cómo empezar con Vittoria</h3>
               <ol className="space-y-4">
                 {[
-                  { step: 'Abrí Telegram y buscá @ItaliciaBot', detail: 'O hacé click en el botón de abajo' },
-                  { step: 'Iniciá la conversación con /start', detail: 'Vittoria te saludará y te preguntará tu nivel' },
-                  { step: 'Indicale que sos principiante', detail: 'Escribí "Sono principiante" o "Estoy empezando"' },
+                  { step: 'Consultá el acceso pago con Alicia', detail: 'Preguntá el precio, la duración y lo que incluye el servicio' },
+                  { step: 'Coordiná la contratación y la activación', detail: 'Alicia te indica las condiciones y el medio de pago' },
+                  { step: 'Recibí las instrucciones para WhatsApp', detail: 'Alicia te comparte cómo ingresar una vez coordinada la activación' },
                   { step: 'Empezá a practicar', detail: 'Podés pedirle ejercicios, vocabulario o simplemente conversar' },
                 ].map((item, index) => (
                   <li key={index} className="flex items-start">
@@ -720,13 +721,13 @@ export default function GuiaItalianoPage() {
 
               <div className="mt-6 text-center">
                 <a
-                  href="https://t.me/ItaliciaBot"
+                  href={vittoriaContactUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-8 py-4 bg-[#0088cc] text-white font-bold rounded-full hover:shadow-lg transition-all transform hover:-translate-y-1"
+                  className="inline-flex items-center px-8 py-4 bg-accent-600 text-white font-bold rounded-full hover:shadow-lg transition-all transform hover:-translate-y-1"
                 >
                   <MessageCircle className="w-6 h-6 mr-3" />
-                  Comenzar con Vittoria
+                  Consultar acceso y precio
                 </a>
               </div>
             </div>
@@ -779,8 +780,8 @@ export default function GuiaItalianoPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">🎯 Después del día 30</h3>
               <p className="text-gray-700 mb-4">
                 Al completar este plan tendrás una base sólida del italiano. El siguiente paso es
-                profundizar con nuestros cursos estructurados donde Alicia te guiará personalmente
-                y podrás usar Vittoria de forma ilimitada.
+                profundizar con los cursos A1, A2 y conversación de Alicia.
+                El acceso pago a Vittoria en WhatsApp se consulta y contrata por separado.
               </p>
               <Link
                 href="/#precios"
@@ -801,17 +802,17 @@ export default function GuiaItalianoPage() {
           </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
             Ya tenés todo lo necesario para dar tus primeros pasos.
-            Ahora es momento de practicar con Vittoria y explorar nuestros cursos.
+            Explorá nuestros cursos y, si querés sumar práctica con IA, consultá el acceso pago a Vittoria en WhatsApp.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://t.me/ItaliciaBot"
+              href={vittoriaContactUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary inline-flex items-center justify-center"
             >
               <MessageCircle className="w-5 h-5 mr-2" />
-              Practicar con Vittoria
+              Consultar Vittoria (acceso pago)
             </a>
             <Link href="/#precios" className="btn-secondary inline-flex items-center justify-center">
               Ver Cursos

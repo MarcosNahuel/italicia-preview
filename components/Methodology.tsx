@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Brain, Calendar, MessageCircle, ArrowRight, Lightbulb, Target, Sparkles } from 'lucide-react'
 import AnimatedSection from './AnimatedSection'
+import { vittoriaContactUrl } from '@/lib/vittoria'
 
 const methods = [
   {
@@ -27,7 +28,7 @@ const methods = [
     icon: MessageCircle,
     title: 'Asistente Virtual Vittoria',
     description:
-      'Tu compañera de aprendizaje disponible 24/7 para resolver dudas y practicar conversación.',
+      'Práctica de italiano en WhatsApp con acceso pago. Consultá las condiciones y la activación con Alicia.',
     gradient: 'from-emerald-500 to-teal-600',
     step: '03',
     hasLink: true,
@@ -91,7 +92,7 @@ export default function Methodology() {
                         <div className="flex-grow">
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-gradient-to-r ${method.gradient} text-white`}>
-                              Paso {method.step}
+                              {method.hasLink ? 'Práctica opcional' : `Paso ${method.step}`}
                             </span>
                           </div>
                           <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-accent-600 transition-colors">
@@ -101,13 +102,13 @@ export default function Methodology() {
 
                           {method.hasLink && (
                             <a
-                              href="https://t.me/ItaliciaBot"
+                              href={vittoriaContactUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-gradient-to-r from-[#0088cc] to-[#0077b5] text-white text-sm font-medium rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                              className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-gradient-to-r from-accent-500 to-emerald-600 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all"
                             >
                               <MessageCircle className="w-4 h-4" />
-                              Hablar con Vittoria
+                              Consultar acceso pago
                               <ArrowRight className="w-4 h-4" />
                             </a>
                           )}

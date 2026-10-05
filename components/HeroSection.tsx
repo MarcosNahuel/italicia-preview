@@ -67,7 +67,7 @@ export default function HeroSection() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
             </span>
-            Nuevo: Tutor IA disponible 24/7
+            Vittoria en WhatsApp · Acceso pago
           </div>
 
           {/* Headline */}
@@ -138,9 +138,9 @@ export default function HeroSection() {
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-white">
-                24/7
+                Vittoria
               </div>
-              <div className="text-sm text-gray-400 mt-1">Tutor IA</div>
+              <div className="text-sm text-gray-400 mt-1">WhatsApp · Acceso pago</div>
             </div>
           </div>
         </div>

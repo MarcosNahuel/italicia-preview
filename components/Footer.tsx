@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <h3 className="text-2xl font-bold mb-4">ItalicIA</h3>
             <p className="text-gray-400 mb-4">
-              Aprende italiano con inteligencia artificial. Tu tutor virtual disponible 24/7.
+              Cursos, materiales y práctica de italiano. Vittoria en WhatsApp con acceso pago.
             </p>
             <div className="flex space-x-4">
               <a
@@ -52,7 +52,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/vittoria/" className="text-gray-400 hover:text-white transition-colors">
-                  Vittoria IA
+                  Vittoria en WhatsApp
                 </Link>
               </li>
               <li>
@@ -76,16 +76,6 @@ export default function Footer() {
                 <Link href="/guia-italiano/" className="text-gray-400 hover:text-white transition-colors">
                   Guia Gratuita
                 </Link>
-              </li>
-              <li>
-                <a
-                  href="https://t.me/ItaliciaBot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Bot Telegram
-                </a>
               </li>
               <li>
                 <Link href="/#certificaciones" className="text-gray-400 hover:text-white transition-colors">

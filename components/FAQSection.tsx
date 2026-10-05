@@ -4,17 +4,18 @@ import { useState } from 'react'
 import { ChevronDown, HelpCircle, MessageCircle } from 'lucide-react'
 import SchemaOrg from './SchemaOrg'
 import AnimatedSection from './AnimatedSection'
+import { vittoriaContactUrl } from '@/lib/vittoria'
 
 const faqs = [
   {
     question: '¿Qué es ItalicIA y cómo funciona?',
     answer:
-      'ItalicIA es una plataforma de aprendizaje de italiano que combina clases con profesores certificados y un tutor de inteligencia artificial llamado Vittoria. Ofrecemos cursos estructurados con material didáctico, clases sincrónicas y acceso 24/7 a nuestro bot de IA para practicar conversación y resolver dudas.',
+      'Italicia ofrece cursos A1, A2 y conversación con Alicia, además de manuales y lecturas para estudiar. Vittoria es una opción de práctica con IA en WhatsApp que se contrata por separado, con acceso pago.',
   },
   {
     question: '¿Quién es Vittoria y cómo me puede ayudar?',
     answer:
-      'Vittoria es nuestra tutora virtual basada en inteligencia artificial, disponible en Telegram. Puede ayudarte a practicar conversación en italiano, corregir errores gramaticales, enseñarte vocabulario nuevo, responder dudas sobre cultura italiana y prepararte para exámenes de certificación. Está disponible 24/7.',
+      'Vittoria es la tutora virtual de Italicia en WhatsApp, con acceso pago. Su propuesta es acompañar la práctica de conversación, gramática y vocabulario. Consultá con Alicia el precio, las condiciones y la activación.',
   },
   {
     question: '¿Necesito conocimientos previos de italiano para empezar?',
@@ -24,7 +25,7 @@ const faqs = [
   {
     question: '¿Cuánto tiempo necesito para aprender italiano?',
     answer:
-      'Con dedicación de 3-5 horas semanales, puedes completar el nivel A1 en aproximadamente 12 semanas. El uso del tutor IA Vittoria acelera el aprendizaje al permitirte practicar en cualquier momento. Cada estudiante avanza a su propio ritmo.',
+      'Cada estudiante avanza a su propio ritmo. Alicia te orienta según tu nivel, tus objetivos y el tiempo que podés dedicar. Podés complementar el estudio con los materiales y, si lo contratás, con Vittoria en WhatsApp.',
   },
   {
     question: '¿Qué certificaciones puedo obtener?',
@@ -37,14 +38,14 @@ const faqs = [
       'Las clases sincrónicas son sesiones en vivo con nuestra profesora Alicia, especializada en italiano. Se realizan por videollamada en grupos reducidos, permitiendo interacción directa, práctica oral y resolución de dudas en tiempo real.',
   },
   {
-    question: '¿Puedo probar antes de pagar?',
+    question: '¿Vittoria es gratuita?',
     answer:
-      'Sí, puedes probar a Vittoria gratis en Telegram (@ItaliciaBot) sin ningún compromiso. Además, ofrecemos una guía gratuita para empezar a aprender italiano que puedes descargar en nuestra web.',
+      'Vittoria tiene acceso pago en WhatsApp. Consultá con Alicia el precio y qué incluye el servicio antes de contratarlo. La guía para empezar a aprender italiano sigue siendo gratuita y está disponible en la web.',
   },
   {
     question: '¿La IA reemplaza a los profesores humanos?',
     answer:
-      'No, la IA complementa la enseñanza humana. Vittoria está disponible 24/7 para práctica y dudas rápidas, mientras que Alicia proporciona las clases estructuradas, explicaciones profundas y el acompañamiento personalizado que solo un humano puede dar.',
+      'La IA es un complemento para practicar. Alicia ofrece las clases y el acompañamiento pedagógico; Vittoria en WhatsApp es un servicio con acceso pago que se consulta y contrata por separado.',
   },
 ]
 
@@ -80,7 +81,7 @@ export default function FAQSection() {
             Preguntas frecuentes
           </span>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            ¿Tienes{' '}
+            ¿Tenés{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent-500 to-emerald-500">
               dudas
             </span>
@@ -161,19 +162,19 @@ export default function FAQSection() {
             <div className="bg-gradient-to-br from-primary-900 to-primary-800 rounded-2xl p-8 shadow-xl">
               <MessageCircle className="w-12 h-12 text-accent-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">
-                ¿Aún tienes preguntas?
+                ¿Te quedan preguntas?
               </h3>
               <p className="text-white/70 mb-6">
-                Preguntale a Vittoria, está disponible 24/7 para ayudarte
+                Consultá con Alicia el acceso pago a Vittoria en WhatsApp
               </p>
               <a
-                href="https://t.me/ItaliciaBot"
+                href={vittoriaContactUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-accent-400 to-emerald-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-accent-500/25 hover:-translate-y-0.5 transition-all"
               >
                 <MessageCircle className="w-5 h-5" />
-                Hablar con Vittoria
+                Consultar con Alicia
               </a>
             </div>
           </div>

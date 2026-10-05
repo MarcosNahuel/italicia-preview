@@ -138,8 +138,8 @@ export default function AboutUs() {
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900">24/7</p>
-                    <p className="text-xs text-gray-500">Tutor IA disponible</p>
+                    <p className="text-sm font-bold text-gray-900">Vittoria</p>
+                    <p className="text-xs text-gray-500">WhatsApp · Acceso pago</p>
                   </div>
                 </div>
               </div>
