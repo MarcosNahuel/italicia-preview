@@ -94,7 +94,7 @@ const organizationSchema = {
   },
   sameAs: [
     'https://www.instagram.com/parla.con.italicia/',
-    'https://facebook.com/profile.php?id=61555614825852',
+    'https://www.facebook.com/profile.php?id=61574476552650',
     'https://wa.me/5492615449532',
   ],
 }
