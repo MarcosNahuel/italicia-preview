@@ -3,6 +3,7 @@ import { required, siteUrl } from './config'
 import { getProduct } from './products'
 import { downloadToken } from './security'
 import type { Order } from './orders'
+import { alertsEnabled, type AlertKind } from './owner-alerts'
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!))
 
@@ -14,11 +15,21 @@ export async function sendBookEmail(order: Order): Promise<string> {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(12_000),
     headers: { Authorization: `Bearer ${required('RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': `book-delivery-v1-${order.id}` },
-    body: JSON.stringify({ from: required('BOOK_EMAIL_FROM'), to: [order.email], reply_to: 'italicia.edu@gmail.com', subject: `Tu PDF de Italicia: ${product.title}`, text,
+    body: JSON.stringify({ from: required('BOOK_EMAIL_FROM'), to: [order.email], tags: alertsEnabled(order) ? [{ name: 'book_order', value: order.id }, { name: 'book_mode', value: order.mode }] : undefined, reply_to: 'italicia.edu@gmail.com', subject: `Tu PDF de Italicia: ${product.title}`, text,
       html: `<div style="font-family:Arial,sans-serif;max-width:560px;color:#18352c"><h1>¡Gracias por tu compra!</h1><p>Tu material: <strong>${escapeHtml(product.title)}</strong></p><p><a href="${escapeHtml(url)}" style="background:#18352c;color:white;padding:14px 22px;display:inline-block;border-radius:8px">Descargar mi PDF</a></p><p>El enlace está disponible durante 30 días desde la confirmación del pago. Guardá el archivo en tu dispositivo.</p><p>Si necesitás ayuda, respondé a este correo.</p><p>Alicia — Italicia</p></div>` }),
   })
   if (!response.ok) throw new Error(`Email service returned ${response.status}`)
   const email = await response.json() as { id?: string }
   if (!email.id) throw new Error('Email receipt missing')
   return email.id
+}
+
+export async function sendOwnerAlert(order: Order, kind: AlertKind, text: string): Promise<void> {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(12_000),
+    headers: { Authorization: `Bearer ${required('RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': `book-owner-v1-${order.id}-${kind}` },
+    body: JSON.stringify({ from: required('BOOK_EMAIL_FROM'), to: ['italicia.edu@gmail.com'],
+      subject: kind === 'sale' ? 'Italicia: nueva compra confirmada' : 'Italicia: revisar entrega del correo', text }),
+  })
+  if (!response.ok || !(await response.json() as { id?: string }).id) throw new Error('Owner alert not confirmed')
 }

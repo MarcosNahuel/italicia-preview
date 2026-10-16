@@ -1,8 +1,9 @@
 import 'server-only'
 import { required, paymentMode } from './config'
 import { orderStore } from './store'
-import { confirmPayment, deliverEmail } from './fulfillment'
-import { sendBookEmail } from './email'
+import { confirmPayment } from './fulfillment'
+import { deliverWithAlerts } from './owner-alerts'
+import { sendBookEmail, sendOwnerAlert } from './email'
 import { capturePaypalOrder, findMpPayments, getMpPayment, getPaypalCapture, getPaypalOrder, mpPreferenceMatches, verifiedMpTestMerchant } from './providers'
 import { validateMpPayment, validatePaypalPayment } from './validation'
 import type { MpPayment } from './validation'
@@ -28,7 +29,7 @@ async function processMpPayment(payment: MpPayment, expectedId?: string, sendEma
     return order
   }
   const confirmed = await confirmPayment(orderStore, id, String(payment.id))
-  return sendEmail ? deliverEmail(orderStore, id, sendBookEmail) : confirmed
+  return sendEmail ? deliverWithAlerts(orderStore, id, sendBookEmail, sendOwnerAlert) : confirmed
 }
 
 export async function handleMpPayment(id: string) {
@@ -74,5 +75,5 @@ export async function reconcileOrder(order: Order, sendEmail = true) {
     return order
   }
   const confirmed = await confirmPayment(orderStore, order.id, capture.id)
-  return sendEmail ? await deliverEmail(orderStore, order.id, sendBookEmail) ?? order : confirmed
+  return sendEmail ? await deliverWithAlerts(orderStore, order.id, sendBookEmail, sendOwnerAlert) ?? order : confirmed
 }

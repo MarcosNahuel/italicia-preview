@@ -74,3 +74,11 @@ export async function saveReconciliationCursor(cursor?: string) {
 export async function privatePdf(path: string) {
   return get(path, { ...options(), useCache: false })
 }
+
+// The signing key stays in private server-side storage, never returned by an API.
+export async function resendWebhookConfiguration() {
+  return (await readJson<{ id: string; secret: string }>(`${commerceStoragePrefix()}system/resend-webhook.json`))?.value
+}
+export async function saveResendWebhookConfiguration(value: { id: string; secret: string }) {
+  await createJson(`${commerceStoragePrefix()}system/resend-webhook.json`, value)
+}

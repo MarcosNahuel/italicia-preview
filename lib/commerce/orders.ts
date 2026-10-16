@@ -20,6 +20,15 @@ export interface Order {
   emailLeaseUntil?: string
   emailLeaseOwner?: string
   emailNeedsReview?: boolean
+  deliveryIssue?: string
+  ownerAlerts?: Partial<Record<'sale' | 'delivery', {
+    text: string
+    firstAttemptAt: string
+    leaseOwner?: string
+    leaseUntil?: number
+    sentAt?: string
+    needsReview?: boolean
+  }>>
 }
 
 export interface OrderStore {

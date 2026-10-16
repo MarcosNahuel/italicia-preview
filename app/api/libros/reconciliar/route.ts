@@ -2,6 +2,8 @@ import { equalSecret } from '@/lib/commerce/security'
 import { orderBatch, orderStore, reconciliationCursor, saveReconciliationCursor } from '@/lib/commerce/store'
 import { reconcileOrder } from '@/lib/commerce/service'
 import { json } from '@/lib/commerce/http'
+import { alertsEnabled, notifyOwner } from '@/lib/commerce/owner-alerts'
+import { sendOwnerAlert } from '@/lib/commerce/email'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300
@@ -18,6 +20,10 @@ export async function GET(request: Request) {
     for (const id of batch.ids) {
       const order = await orderStore.read(id)
       if (!order || order.status === 'revoked' || !order.providerOrderId) continue
+      if (alertsEnabled(order)) {
+        try { await notifyOwner(orderStore, id, sendOwnerAlert) } catch { failed++ }
+        if (Object.values((await orderStore.read(id))?.ownerAlerts ?? {}).some(alert => alert.needsReview)) needsReview++
+      }
       // Keep retries bounded. Mature paid deliveries refresh on download and signed notifications.
       if (order.emailSentAt || (order.status === 'pending' && Date.now() - Date.parse(order.createdAt) > 7 * 86400_000)) continue
       try { const current = await reconcileOrder(order); if (current.emailNeedsReview) needsReview++; checked++ }

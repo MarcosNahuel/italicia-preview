@@ -10,6 +10,10 @@ import type { Order, OrderStore } from '../lib/commerce/orders'
 import type { MpPayment, PaypalOrder, PaypalCapture } from '../lib/commerce/validation'
 import { paypalWebhookReference } from '../lib/commerce/paypal-events'
 import { createProviderCheckout, verifiedMpTestMerchant } from '../lib/commerce/providers'
+import { deliverWithAlerts, notifyOwner, ownerAlertText, type AlertKind } from '../lib/commerce/owner-alerts'
+import { handleEmailEvent, verifyEmailEvent } from '../lib/commerce/email-events'
+import { Webhook } from 'svix'
+import { sendOwnerAlert } from '../lib/commerce/email'
 
 const secret = 'test-only-secret-with-more-than-32-characters'
 const order = (provider: Order['provider'] = 'mercadoPago'): Order => ({ version: 1, id: newOrderId(), productId: 'lectura-a1', provider, email: 'buyer@example.com', amount: provider === 'mercadoPago' ? 990000 : 1000, currency: currencyFor(provider), mode: 'sandbox', createdAt: new Date().toISOString(), status: 'pending', providerOrderId: 'ABC123' })
@@ -26,6 +30,104 @@ class MemoryStore implements OrderStore {
   async findByProviderOrder(provider: Order['provider'], remoteId: string) { return this.index.get(`${provider}:${remoteId}`) ?? null }
   async findByPayment(provider: Order['provider'], remoteId: string) { return this.payments.get(`${provider}:${remoteId}`) ?? null }
 }
+
+test('owner alerts: confirmed sale, concurrency, failures, retries, old orders and sandbox isolation', async () => {
+  const previous = { env: process.env.VERCEL_ENV, since: process.env.BOOK_OWNER_ALERTS_FROM }
+  process.env.VERCEL_ENV = 'production'
+  process.env.BOOK_OWNER_ALERTS_FROM = '2026-10-16T00:00:00Z'
+  const store = new MemoryStore()
+  const paid = { ...order(), mode: 'live' as const, status: 'paid' as const, paidAt: '2026-10-16T12:00:00Z' }
+  const notices: AlertKind[] = []
+  const send = async (_order: Order, kind: AlertKind) => { notices.push(kind) }
+  try {
+    await store.create(paid)
+    let books = 0
+    await Promise.all(Array.from({ length: 4 }, () => deliverWithAlerts(store, paid.id, async () => { books++; return 'email-1' }, send)))
+    assert.equal(books, 1)
+    assert.deepEqual(notices, ['sale'])
+    const event = { type: 'email.bounced', data: { email_id: 'email-1', to: [paid.email], tags: { book_order: paid.id, book_mode: 'live' } } }
+    await handleEmailEvent(store, { ...event, data: { ...event.data, email_id: 'unrelated' } }, send)
+    await handleEmailEvent(store, { type: 'email.bounced', data: {} }, send)
+    assert.deepEqual(notices, ['sale'])
+    await handleEmailEvent(store, event, send)
+    await handleEmailEvent(store, event, send)
+    assert.deepEqual(notices, ['sale', 'delivery'])
+    assert.match((await store.read(paid.id))!.deliveryIssue!, /rechazó/)
+    const broken = { ...paid, id: newOrderId() }
+    await store.create(broken)
+    await assert.rejects(deliverWithAlerts(store, broken.id, async () => { throw new Error('timeout') }, send))
+    assert.deepEqual(notices, ['sale', 'delivery', 'sale', 'delivery'])
+    assert.equal((await store.read(broken.id))!.emailSentAt, undefined)
+    await deliverWithAlerts(store, broken.id, async () => 'email-recovered', send)
+    assert.ok((await store.read(broken.id))!.emailSentAt)
+    assert.equal(notices.length, 4)
+    for (const isolated of [{ ...paid, id: newOrderId(), mode: 'sandbox' as const }, { ...paid, id: newOrderId(), paidAt: '2026-10-15T00:00:00Z' }, { ...paid, id: newOrderId(), paidAt: undefined, status: 'pending' as const }]) {
+      await store.create(isolated)
+      await notifyOwner(store, isolated.id, send)
+    }
+    assert.equal(notices.length, 4)
+    const retry = { ...paid, id: newOrderId() }
+    await store.create(retry)
+    await deliverWithAlerts(store, retry.id, async () => 'customer-ok', async () => { throw new Error('owner API unavailable') })
+    assert.ok((await store.read(retry.id))!.emailSentAt)
+    const text = (await store.read(retry.id))!.ownerAlerts!.sale!.text
+    await notifyOwner(store, retry.id, async (_o, kind, body) => { assert.equal(body, text); notices.push(kind) })
+    assert.equal(notices.length, 5)
+    const ambiguous = { ...paid, id: newOrderId() }
+    await store.create(ambiguous)
+    const now = Date.now()
+    await notifyOwner(store, ambiguous.id, async () => { throw new Error('ambiguous timeout') }, now)
+    await notifyOwner(store, ambiguous.id, send, now + 24 * 3600_000)
+    assert.equal((await store.read(ambiguous.id))!.ownerAlerts!.sale!.needsReview, true)
+    assert.equal(notices.length, 5)
+    assert.match(ownerAlertText({ ...paid, provider: 'paypal', currency: 'USD', amount: 1300 }, 'sale'), /PayPal/)
+  } finally {
+    if (previous.env === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = previous.env
+    if (previous.since === undefined) delete process.env.BOOK_OWNER_ALERTS_FROM; else process.env.BOOK_OWNER_ALERTS_FROM = previous.since
+  }
+})
+
+test('Resend webhook verifies raw signatures and rejects tampering, stale and unsigned events', async () => {
+  const signingSecret = `whsec_${Buffer.from('test-signing-key-only').toString('base64')}`
+  const hook = new Webhook(signingSecret)
+  const payload = JSON.stringify({ type: 'email.bounced', data: {} })
+  const now = new Date()
+  const headers = new Headers({ 'svix-id': 'msg-test', 'svix-timestamp': String(Math.floor(now.getTime() / 1000)), 'svix-signature': hook.sign('msg-test', now, payload) })
+  assert.equal(verifyEmailEvent(payload, headers, signingSecret).type, 'email.bounced')
+  assert.throws(() => verifyEmailEvent(payload + ' ', headers, signingSecret))
+  assert.throws(() => verifyEmailEvent(payload, new Headers(), signingSecret))
+  const old = new Date(now.getTime() - 600_000)
+  const stale = new Headers({ 'svix-id': 'msg-test', 'svix-timestamp': String(Math.floor(old.getTime() / 1000)), 'svix-signature': hook.sign('msg-test', old, payload) })
+  assert.throws(() => verifyEmailEvent(payload, stale, signingSecret))
+  const previous = process.env.RESEND_WEBHOOK_SECRET
+  process.env.RESEND_WEBHOOK_SECRET = signingSecret
+  try {
+    const route = await import('../app/api/libros/webhooks/resend/route')
+    assert.equal((await route.POST(new Request('https://www.italicia.com/api/libros/webhooks/resend/', { method: 'POST', body: payload }))).status, 401)
+  } finally { if (previous === undefined) delete process.env.RESEND_WEBHOOK_SECRET; else process.env.RESEND_WEBHOOK_SECRET = previous }
+})
+
+test('owner emails have fixed recipient and stable idempotency, without download links or customer tags', async () => {
+  const originalFetch = globalThis.fetch
+  const previous = { key: process.env.RESEND_API_KEY, from: process.env.BOOK_EMAIL_FROM }
+  process.env.RESEND_API_KEY = 'fake-test-only'
+  process.env.BOOK_EMAIL_FROM = 'Test <test@example.com>'
+  const expected = order()
+  globalThis.fetch = (async (_url, init) => {
+    const body = JSON.parse(String(init?.body))
+    assert.deepEqual(body.to, ['italicia.edu@gmail.com'])
+    assert.equal(body.tags, undefined)
+    assert.equal(body.text.includes('/descarga'), false)
+    assert.equal(new Headers(init?.headers).get('Idempotency-Key'), `book-owner-v1-${expected.id}-sale`)
+    return Response.json({ id: 'owner-email' })
+  }) as typeof fetch
+  try { await sendOwnerAlert(expected, 'sale', ownerAlertText(expected, 'sale')) }
+  finally {
+    globalThis.fetch = originalFetch
+    if (previous.key === undefined) delete process.env.RESEND_API_KEY; else process.env.RESEND_API_KEY = previous.key
+    if (previous.from === undefined) delete process.env.BOOK_EMAIL_FROM; else process.env.BOOK_EMAIL_FROM = previous.from
+  }
+})
 
 test('the four prices are the confirmed catalog prices, with no A2 paid product', () => {
   assert.deepEqual(getProduct('lectura-a1')?.amounts, { ARS: 990000, USD: 1000 })
