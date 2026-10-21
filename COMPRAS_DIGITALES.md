@@ -1,6 +1,6 @@
 # Venta y entrega de PDF
 
-## Cambio local preparado el 21 de octubre de 2026 — aún sin publicar
+## Transferencias publicadas el 21 de octubre de 2026
 
 Alicia eligió reemplazar Mercado Pago por transferencia a Banco Patagonia, alias `italicia.bp`, titular Alicia Alejandra Tapia. PayPal se conserva. Los botones nuevos y rutas antiguas de compra con Mercado Pago llevan a transferencia; la API rechaza nuevos checkouts MP. Se conservan sus webhooks y verificación para pedidos históricos: no retirar las credenciales históricas al desplegar.
 
@@ -8,9 +8,11 @@ El comprador crea un pedido pendiente con correo confirmado antes de ver datos b
 
 La confirmación dispara la entrega existente, con reintentos, enlace de 30 días y deduplicación. La pantalla privada permite reintentar un correo pendiente o suspender definitivamente la descarga después de una cancelación/devolución; no mueve dinero en el banco. La conciliación periódica reintenta avisos pendientes y entregas confirmadas. Intentos ambiguos de más de 23 horas requieren revisión operativa. La lectura de descargas consulta el pedido actualizado, sin consultar un proveedor externo para las transferencias.
 
-Activación pendiente: configurar `BOOK_CHECKOUT_TRANSFER_ENABLED=true` y un `BOOK_TRANSFER_ADMIN_SECRET` aleatorio e independiente de al menos 32 caracteres; mantener los secretos fuera de Git y del chat. Rotarlo invalida enlaces privados anteriores (requiere regenerarlos operativamente). Mantener el control de entrega verificada y aislamiento Sandbox/Production. Preparar pruebas Preview con almacenamiento Sandbox y correo de Italicia antes de autorizar el uso público; la simulación local no acredita entrega real. Desactivar `BOOK_CHECKOUT_MP_ENABLED` en Production al activar el reemplazo. Sin configuración completa se ofrece consultar a Alicia y no se muestran datos para pagar.
+Configuración operativa: `BOOK_CHECKOUT_TRANSFER_ENABLED=true` y `BOOK_TRANSFER_ADMIN_SECRET` aleatorio e independiente de al menos 32 caracteres; mantener los secretos fuera de Git y del chat. Rotarlo invalida enlaces privados anteriores (requiere regenerarlos operativamente). Mantener el control de entrega verificada y aislamiento Sandbox/Production. Probar futuros cambios en Preview con almacenamiento Sandbox y correo de Italicia antes del uso público; la simulación local no acredita entrega real. `BOOK_CHECKOUT_MP_ENABLED=false` en Production. Sin configuración completa se ofrece consultar a Alicia y no se muestran datos para pagar.
 
-Evidencia local y capturas con datos ficticios: `trabajos/2026-10-21/transferencias-libros/` en la carpeta principal Italicia. No se publicaron cambios ni se enviaron correos durante esta preparación.
+La prueba autorizada en Preview creó dos pedidos Sandbox para Italicia: llegaron ambos avisos y ambos correos de entrega a INBOX, con SPF/DKIM/DMARC correctos. Los PDF descargados coinciden con los originales por tamaño y SHA-256. Repetir la confirmación no duplicó correos. Suspender ambos pedidos bloqueó sus descargas con 403. No se hicieron transferencias ni cobros reales.
+
+Se configuró una clave de administración independiente en Production, se habilitó transferencia y se deshabilitaron los nuevos checkouts MP conservando sus credenciales históricas. La versión Production dpl_J2u3ikCKLZa4HohGCXmMXBnP1PTE se revisó antes de promoverla a www.italicia.com. Los cuatro formularios (dos libros, transferencia/PayPal) quedaron habilitados sin modo Sandbox. Evidencia y capturas en `trabajos/2026-10-21/transferencias-libros/` dentro de la carpeta principal Italicia. Los tokens y cuerpos privados se conservan únicamente en `.vercel/transfer-test`, excluidos de Git y despliegues.
 
 Implementación y pruebas completas del 4 y 5 de octubre de 2026, autorizadas por Alicia para Vercel, Mercado Pago y PayPal. Precios: manual A1 ARS 19.900 / USD 13; lectura Un’argentina in Italia ARS 9.900 / USD 10, oferta de lanzamiento. No se hicieron cobros reales para probar.
 
