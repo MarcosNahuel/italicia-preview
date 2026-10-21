@@ -19,14 +19,14 @@ export async function GET(request: Request) {
     let checked = 0, failed = 0, needsReview = 0
     for (const id of batch.ids) {
       const order = await orderStore.read(id)
-      if (!order || order.status === 'revoked' || !order.providerOrderId) continue
+      if (!order || order.status === 'revoked' || (!order.providerOrderId && order.provider !== 'transferencia')) continue
       if (alertsEnabled(order)) {
         try { await notifyOwner(orderStore, id, sendOwnerAlert) } catch { failed++ }
         if (Object.values((await orderStore.read(id))?.ownerAlerts ?? {}).some(alert => alert.needsReview)) needsReview++
       }
       // Keep retries bounded. Mature paid deliveries refresh on download and signed notifications.
       if (order.emailSentAt || (order.status === 'pending' && Date.now() - Date.parse(order.createdAt) > 7 * 86400_000)) continue
-      try { const current = await reconcileOrder(order); if (current.emailNeedsReview) needsReview++; checked++ }
+      try { const current = await reconcileOrder(order); if (current.emailNeedsReview || current.transferNotice?.needsReview) needsReview++; checked++ }
       catch { failed++ }
     }
     if (explicitCursor === null) await saveReconciliationCursor(batch.cursor)

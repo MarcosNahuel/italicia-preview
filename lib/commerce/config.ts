@@ -37,7 +37,7 @@ export function configurationIssues(productId: string, provider: Provider): stri
   const product = getProduct(productId)
   if (!product) return ['unknown-product']
   const names = ['BOOK_TOKEN_SECRET', 'RESEND_API_KEY', 'BOOK_EMAIL_FROM', product.pdfEnv]
-  names.push(...(provider === 'mercadoPago'
+  names.push(...(provider === 'transferencia' ? ['BOOK_TRANSFER_ADMIN_SECRET'] : provider === 'mercadoPago'
     ? ['MP_ACCESS_TOKEN', 'MP_WEBHOOK_SECRET', 'MP_MERCHANT_ID']
     : ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID', 'PAYPAL_MERCHANT_ID']))
   const issues = names.filter(name => !process.env[name]?.trim())
@@ -46,7 +46,9 @@ export function configurationIssues(productId: string, provider: Provider): stri
   const pdf = process.env[product.pdfEnv] ?? ''
   if (pdf && !/^books\/[a-zA-Z0-9_./-]+\.pdf$/.test(pdf)) issues.push('private-pdf-path')
   if (process.env.BOOK_DELIVERY_VERIFIED !== 'true' && !sandboxTesting()) issues.push('delivery-not-verified')
-  if (process.env[provider === 'mercadoPago' ? 'BOOK_CHECKOUT_MP_ENABLED' : 'BOOK_CHECKOUT_PAYPAL_ENABLED'] !== 'true') issues.push('provider-disabled')
+  if (provider === 'transferencia' && (process.env.BOOK_TRANSFER_ADMIN_SECRET?.length ?? 0) < 32) issues.push('transfer-admin-secret-length')
+  if (provider === 'mercadoPago') issues.push('replaced-by-transfer')
+  if (process.env[provider === 'transferencia' ? 'BOOK_CHECKOUT_TRANSFER_ENABLED' : provider === 'mercadoPago' ? 'BOOK_CHECKOUT_MP_ENABLED' : 'BOOK_CHECKOUT_PAYPAL_ENABLED'] !== 'true') issues.push('provider-disabled')
   if (paymentMode() !== 'live' && process.env.VERCEL_ENV === 'production') issues.push('sandbox-in-production')
   if (paymentMode() === 'live' && process.env.VERCEL_ENV === 'preview') issues.push('live-in-preview')
   return issues

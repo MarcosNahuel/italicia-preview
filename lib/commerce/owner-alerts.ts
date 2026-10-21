@@ -14,7 +14,7 @@ export function alertsEnabled(order: Order) {
 }
 
 export function ownerAlertText(order: Order, kind: AlertKind) {
-  const details = `Libro: ${getProduct(order.productId)!.title}\nImporte: ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: order.currency }).format(order.amount / 100)} (${order.currency})\nMedio de pago: ${order.provider === 'paypal' ? 'PayPal' : 'Mercado Pago'}\nCorreo del comprador: ${order.email}\nPedido: ${order.id}`
+  const details = `Libro: ${getProduct(order.productId)!.title}\nImporte: ${new Intl.NumberFormat('es-AR', { style: 'currency', currency: order.currency }).format(order.amount / 100)} (${order.currency})\nMedio de pago: ${order.provider === 'transferencia' ? 'Transferencia bancaria' : order.provider === 'paypal' ? 'PayPal' : 'Mercado Pago'}\nCorreo del comprador: ${order.email}\nPedido: ${order.id}`
   return kind === 'sale'
     ? `Se confirmó una compra en Italicia.\n\n${details}\n\nEl pago está confirmado. Este aviso no confirma que el comprador haya recibido el correo o descargado el PDF.`
     : `Revisá la entrega del correo de este pedido.\n\n${details}\n\nEstado: ${order.deliveryIssue ?? 'El envío requiere revisión.'}\n\nVerificá el estado en Resend y el correo del comprador antes de reenviar. No vuelvas a cobrarle. Si hubo un problema temporal, el sistema puede seguir reintentando el envío.`

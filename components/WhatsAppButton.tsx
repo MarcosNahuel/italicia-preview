@@ -1,6 +1,12 @@
+'use client'
+
 import { MessageCircle } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 export default function WhatsAppButton() {
+  const pathname = usePathname()
+  // Purchase screens already offer contextual help; the floating button covers text on phones.
+  if (pathname.startsWith('/compra/')) return null
   return (
     <a
       href="https://wa.me/5492615449532"

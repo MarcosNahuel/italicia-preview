@@ -25,6 +25,7 @@ export function resultUrl(order: Order) {
   return `${siteUrl()}/compra/resultado/?pedido=${order.id}&acceso=${orderAccess(order.id, required('BOOK_TOKEN_SECRET'))}`
 }
 export async function createProviderCheckout(order: Order) {
+  if (order.provider === 'transferencia') throw new Error('Transfer has no external checkout')
   const product = getProduct(order.productId)!
   const back = resultUrl(order)
   if (order.provider === 'mercadoPago') {

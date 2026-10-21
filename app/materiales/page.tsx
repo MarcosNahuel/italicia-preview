@@ -4,7 +4,7 @@ import MaterialCards from '@/components/MaterialCards'
 
 export const metadata: Metadata = {
   title: 'Materiales y lecturas para aprender italiano',
-  description: 'Conocé los libros digitales de Alicia: el manual de italiano A1 y la lectura ilustrada Un’argentina in Italia. Mirá sus presentaciones y comprá con Mercado Pago o PayPal.',
+  description: 'Conocé los libros digitales de Alicia: el manual de italiano A1 y la lectura ilustrada Un’argentina in Italia. Mirá sus presentaciones y comprá por transferencia bancaria o PayPal.',
   alternates: { canonical: 'https://italicia.com/materiales/' },
 }
 export default function MaterialesPage() {

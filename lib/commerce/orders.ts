@@ -21,6 +21,9 @@ export interface Order {
   emailLeaseOwner?: string
   emailNeedsReview?: boolean
   deliveryIssue?: string
+  transferNotice?: { firstAttemptAt: string; leaseOwner?: string; leaseUntil?: number; sentAt?: string; needsReview?: boolean }
+  transferConfirmedAt?: string
+  transferRevokedAt?: string
   ownerAlerts?: Partial<Record<'sale' | 'delivery', {
     text: string
     firstAttemptAt: string

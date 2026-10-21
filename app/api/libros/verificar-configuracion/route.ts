@@ -19,6 +19,6 @@ export async function GET(request: Request) {
         return available
       })),
     ])
-    return json({ mode: paymentMode(), ...providers, privatePdfsAvailable: files.every(Boolean), issues: ['manual-a1', 'lectura-a1'].flatMap(product => ['mercadoPago', 'paypal'].flatMap(provider => configurationIssues(product, provider as 'mercadoPago' | 'paypal'))) })
+    return json({ mode: paymentMode(), ...providers, privatePdfsAvailable: files.every(Boolean), issues: ['manual-a1', 'lectura-a1'].flatMap(product => (['transferencia', 'paypal'] as const).flatMap(provider => configurationIssues(product, provider))) })
   } catch { return json({ error: 'Configuration check unavailable' }, 503) }
 }

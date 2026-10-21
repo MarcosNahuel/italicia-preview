@@ -3,6 +3,8 @@ import { downloadToken, verifyOrderAccess } from '@/lib/commerce/security'
 import { orderStore } from '@/lib/commerce/store'
 import { reconcileOrder } from '@/lib/commerce/service'
 import { json, sameOrigin, smallJson } from '@/lib/commerce/http'
+import { getProduct } from '@/lib/commerce/products'
+import { transferBank } from '@/lib/commerce/bank'
 
 export const runtime = 'nodejs'
 export const maxDuration = 90
@@ -16,6 +18,7 @@ export async function POST(request: Request) {
     // Browser redirects never determine paid status. Read the provider again, including reversals.
     try { order = await reconcileOrder(order) } catch { order = await orderStore.read(body.id) ?? order }
     return json({ status: order.status, emailSent: !!order.emailSentAt,
+      transfer: order.provider === 'transferencia' ? { ...transferBank, title: getProduct(order.productId)!.title, amount: order.amount, email: order.email } : undefined,
       downloadUrl: order.status === 'paid' && order.paidAt
         ? `${siteUrl()}/api/libros/descarga/?token=${downloadToken(order.id, order.paidAt, required('BOOK_TOKEN_SECRET'))}` : undefined })
   } catch { return json({ error: 'No pudimos comprobar la compra. Contactá a Alicia si ya pagaste.' }, 503) }

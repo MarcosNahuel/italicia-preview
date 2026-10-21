@@ -3,7 +3,8 @@ import { required, paymentMode } from './config'
 import { orderStore } from './store'
 import { confirmPayment } from './fulfillment'
 import { deliverWithAlerts } from './owner-alerts'
-import { sendBookEmail, sendOwnerAlert } from './email'
+import { sendBookEmail, sendOwnerAlert, sendTransferNotice } from './email'
+import { notifyTransfer } from './transfers'
 import { capturePaypalOrder, findMpPayments, getMpPayment, getPaypalCapture, getPaypalOrder, mpPreferenceMatches, verifiedMpTestMerchant } from './providers'
 import { validateMpPayment, validatePaypalPayment } from './validation'
 import type { MpPayment } from './validation'
@@ -41,6 +42,12 @@ export async function handleMpPayment(id: string) {
 
 export async function reconcileOrder(order: Order, sendEmail = true) {
   if (order.mode !== paymentMode() || (order.mode === 'sandbox' && process.env.VERCEL_ENV === 'production')) throw new Error('Payment environment mismatch')
+  if (order.provider === 'transferencia') {
+    const current = await orderStore.read(order.id) ?? order
+    if (!sendEmail || current.status === 'revoked') return current
+    if (current.status === 'pending') return await notifyTransfer(orderStore, order.id, sendTransferNotice) ?? current
+    return await deliverWithAlerts(orderStore, order.id, sendBookEmail, sendOwnerAlert) ?? current
+  }
   if (!order.providerOrderId || order.status === 'revoked') return order
   if (order.provider === 'mercadoPago') {
     const payments = order.paymentId ? [await getMpPayment(order.paymentId)] : await findMpPayments(order)

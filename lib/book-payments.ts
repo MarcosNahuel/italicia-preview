@@ -20,9 +20,8 @@ export function getBookPaymentLinks(materialId: string) {
   const links = bookPaymentLinks[materialId]
   if (!links) return []
   return [
-    { provider: 'mercadoPago', label: 'Comprar con Mercado Pago', href: links.mercadoPago,
-      hosts: ['mpago.la', 'mpago.ar', 'mercadopago.com.ar', 'mercadopago.com'] },
+    { provider: 'transferencia', label: 'Comprar por transferencia', href: `/compra/${materialId}/?medio=transferencia`, hosts: [] },
     { provider: 'paypal', label: 'Comprar con PayPal', href: links.paypal,
       hosts: ['paypal.com', 'paypal.me'] },
-  ].filter(link => isProviderLink(link.href, link.hosts))
+  ].filter(link => link.provider === 'transferencia' || isProviderLink(link.href, link.hosts))
 }

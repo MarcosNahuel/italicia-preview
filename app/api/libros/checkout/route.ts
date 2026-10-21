@@ -1,6 +1,8 @@
 import { checkoutEmailAllowed, checkoutReady, paymentMode } from '@/lib/commerce/config'
 import { currencyFor, getProduct, isProvider, normalizeEmail } from '@/lib/commerce/products'
-import { newOrderId } from '@/lib/commerce/security'
+import { newOrderId, orderAccess } from '@/lib/commerce/security'
+import { notifyTransfer } from '@/lib/commerce/transfers'
+import { sendTransferNotice } from '@/lib/commerce/email'
 import { orderStore, privatePdf } from '@/lib/commerce/store'
 import { required } from '@/lib/commerce/config'
 import { createProviderCheckout, validCheckoutUrl } from '@/lib/commerce/providers'
@@ -28,6 +30,10 @@ export async function POST(request: Request) {
     const order: Order = { version: 1, id: newOrderId(), productId: product.id, provider, email,
       amount: product.amounts[currency], currency, mode: paymentMode(), createdAt: new Date().toISOString(), status: 'pending' }
     await orderStore.create(order)
+    if (provider === 'transferencia') {
+      await notifyTransfer(orderStore, order.id, sendTransferNotice)
+      return json({ url: `/compra/resultado/?pedido=${order.id}&acceso=${orderAccess(order.id, required('BOOK_TOKEN_SECRET'))}` })
+    }
     const checkout = await createProviderCheckout(order)
     if (!validCheckoutUrl(checkout.url, provider, order.mode)) throw new Error('Invalid checkout destination')
     await orderStore.update(order.id, current => ({ ...current, providerOrderId: checkout.id }))

@@ -16,6 +16,12 @@ export function equalSecret(actual: string, expected: string) {
 export function orderAccess(id: string, secret: string) {
   return digest(secret, `status:v1:${id}`)
 }
+export function transferAdminAccess(id: string, secret: string) {
+  return digest(secret, `transfer-owner:v1:${id}`)
+}
+export function verifyTransferAdminAccess(id: string, token: string, secret: string) {
+  return secret.length >= 32 && validOrderId(id) && equalSecret(token, transferAdminAccess(id, secret))
+}
 export function verifyOrderAccess(id: string, token: string, secret: string) {
   return validOrderId(id) && equalSecret(token, orderAccess(id, secret))
 }

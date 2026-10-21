@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { checkoutReady, paymentMode } from '@/lib/commerce/config'
 import { currencyFor, getProduct, isProvider } from '@/lib/commerce/products'
@@ -13,6 +13,7 @@ export default async function PurchasePage({ params, searchParams }: { params: P
   const { medio } = await searchParams
   const product = getProduct(productId)
   if (!product || !isProvider(medio)) notFound()
+  if (medio === 'mercadoPago') redirect(`/compra/${product.id}/?medio=transferencia`)
   const enabled = checkoutReady(product.id, medio)
   const sandbox = process.env.VERCEL_ENV === 'preview' && paymentMode() === 'sandbox'
   const currency = currencyFor(medio)
@@ -24,8 +25,8 @@ export default async function PurchasePage({ params, searchParams }: { params: P
     <p className="mt-4 text-2xl font-semibold">{price} {currency}</p>
     {sandbox && <p className="mt-5 rounded-xl bg-amber-100 p-4 text-amber-950">Prueba Sandbox · sin dinero real. Usá una cuenta de comprador de prueba y el correo de Italicia para comprobar la entrega.</p>}
     {enabled ? <BookCheckout productId={product.id} provider={medio} /> : sandbox ? <p className="mt-8">Este medio de prueba todavía no está preparado.</p> : <div className="mt-8 space-y-4">
-      <p>Por ahora, Alicia coordina la entrega del PDF. Después de pagar, escribile con el comprobante.</p>
-      <a href={getBookPaymentLinks(product.id).find(link => link.provider === medio)?.href} className="block rounded-xl bg-primary-900 p-4 text-center font-semibold text-white">Pagar con {medio === 'mercadoPago' ? 'Mercado Pago' : 'PayPal'}</a>
+      <p>{medio === 'transferencia' ? 'La compra por transferencia se está preparando. Consultá con Alicia antes de pagar.' : 'Por ahora, Alicia coordina la entrega del PDF. Después de pagar, escribile con el comprobante.'}</p>
+      {medio === 'paypal' && <a href={getBookPaymentLinks(product.id).find(link => link.provider === medio)?.href} className="block rounded-xl bg-primary-900 p-4 text-center font-semibold text-white">Pagar con PayPal</a>}
       <a href={`https://wa.me/5492615449532?text=${encodeURIComponent(`Hola Alicia, quiero recibir el PDF de ${product.title}.`)}`} target="_blank" rel="noopener noreferrer" className="block text-center text-primary-900 underline">Contactar a Alicia</a>
     </div>}
   </div></main>

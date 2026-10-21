@@ -1,11 +1,22 @@
 import 'server-only'
 import { required, siteUrl } from './config'
 import { getProduct } from './products'
-import { downloadToken } from './security'
+import { downloadToken, transferAdminAccess } from './security'
 import type { Order } from './orders'
 import { alertsEnabled, type AlertKind } from './owner-alerts'
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!))
+
+export async function sendTransferNotice(order: Order): Promise<void> {
+  const url = `${siteUrl()}/compra/administrar-transferencia/#pedido=${order.id}&acceso=${transferAdminAccess(order.id, required('BOOK_TRANSFER_ADMIN_SECRET'))}`
+  const text = `Nuevo pedido por transferencia (pago pendiente).\n\nLibro: ${getProduct(order.productId)!.title}\nImporte: ${(order.amount / 100).toFixed(2)} ARS\nCorreo: ${order.email}\nPedido: ${order.id}\n\nRevisá el ingreso en Banco Patagonia. Luego abrí tu pantalla privada para confirmar y enviar el libro:\n${url}\n\nNo compartas este enlace: permite confirmar el pago o suspender la descarga de este pedido. Abrirlo no confirma ningún pago.`
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(12_000),
+    headers: { Authorization: `Bearer ${required('RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': `book-transfer-notice-v1-${order.id}` },
+    body: JSON.stringify({ from: required('BOOK_EMAIL_FROM'), to: ['italicia.edu@gmail.com'], subject: 'Italicia: pedido por transferencia pendiente de confirmar', text }),
+  })
+  if (!response.ok || !(await response.json() as { id?: string }).id) throw new Error('Transfer notice not confirmed')
+}
 
 export async function sendBookEmail(order: Order): Promise<string> {
   if (order.status !== 'paid' || !order.paidAt) throw new Error('Unpaid order cannot be delivered')

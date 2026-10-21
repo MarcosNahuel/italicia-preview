@@ -14,6 +14,12 @@ import { deliverWithAlerts, notifyOwner, ownerAlertText, type AlertKind } from '
 import { handleEmailEvent, verifyEmailEvent } from '../lib/commerce/email-events'
 import { Webhook } from 'svix'
 import { sendOwnerAlert } from '../lib/commerce/email'
+import { confirmTransfer, notifyTransfer, transferReference } from '../lib/commerce/transfers'
+import { transferAdminAccess, verifyTransferAdminAccess } from '../lib/commerce/security'
+import { transferManagement } from '../lib/commerce/transfer-management'
+import { getBookPaymentLinks } from '../lib/book-payments'
+import { orderStore } from '../lib/commerce/store'
+import { reconcileOrder } from '../lib/commerce/service'
 
 const secret = 'test-only-secret-with-more-than-32-characters'
 const order = (provider: Order['provider'] = 'mercadoPago'): Order => ({ version: 1, id: newOrderId(), productId: 'lectura-a1', provider, email: 'buyer@example.com', amount: provider === 'mercadoPago' ? 990000 : 1000, currency: currencyFor(provider), mode: 'sandbox', createdAt: new Date().toISOString(), status: 'pending', providerOrderId: 'ABC123' })
@@ -30,6 +36,110 @@ class MemoryStore implements OrderStore {
   async findByProviderOrder(provider: Order['provider'], remoteId: string) { return this.index.get(`${provider}:${remoteId}`) ?? null }
   async findByPayment(provider: Order['provider'], remoteId: string) { return this.payments.get(`${provider}:${remoteId}`) ?? null }
 }
+
+test('transfers: owner-only confirmation, retries, duplicate reference, revocation and isolation', async () => {
+  const store = new MemoryStore()
+  const transfer: Order = { ...order('transferencia'), amount: 990000, providerOrderId: undefined }
+  await store.create(transfer)
+  let emails = 0
+  const handler = transferManagement({ store, secret: () => secret, mode: () => 'sandbox', production: () => false,
+    deliver: async current => (await deliverEmail(store, current.id, async () => { emails++; return 'book-mail' }))! })
+  const request = (body: Record<string, unknown>, origin = 'https://www.italicia.com') => new Request('https://www.italicia.com/api/libros/transferencia/', { method: 'POST', headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  const auth = { id: transfer.id, access: transferAdminAccess(transfer.id, secret) }
+  assert.equal(verifyTransferAdminAccess(transfer.id, orderAccess(transfer.id, secret), secret), false)
+  assert.equal(verifyTransferAdminAccess(newOrderId(), auth.access, secret), false)
+  assert.equal((await handler(request({ ...auth, access: orderAccess(transfer.id, secret), action: 'confirm', checked: true, reference: 'OP-123456' }))).status, 403)
+  assert.equal((await handler(request({ ...auth, action: 'inspect' }, 'https://other.example'))).status, 403)
+  assert.equal((await handler(request({ ...auth, action: 'inspect' }))).status, 200)
+  assert.equal((await store.read(transfer.id))!.status, 'pending')
+  assert.equal(emails, 0)
+  assert.equal((await handler(request({ ...auth, action: 'confirm', reference: 'OP123456' }))).status, 400)
+  assert.equal((await handler(request({ ...auth, action: 'confirm', checked: true, reference: 'x' }))).status, 409)
+  await Promise.all(Array.from({ length: 4 }, () => handler(request({ ...auth, action: 'confirm', checked: true, reference: 'OP-123456' }))))
+  assert.equal(emails, 1)
+  assert.ok((await store.read(transfer.id))!.transferConfirmedAt)
+  assert.equal((await handler(request({ ...auth, action: 'confirm', checked: true, reference: 'OP999999' }))).status, 409)
+  const other = { ...transfer, id: newOrderId() }
+  await store.create(other)
+  await assert.rejects(confirmTransfer(store, other.id, 'op 123456'))
+  assert.equal((await store.read(other.id))!.status, 'pending')
+  assert.equal((await handler(request({ ...auth, action: 'revoke' }))).status, 400)
+  assert.equal((await handler(request({ ...auth, action: 'revoke', checked: true }))).status, 200)
+  assert.equal((await store.read(transfer.id))!.status, 'revoked')
+  assert.equal((await handler(request({ ...auth, action: 'confirm', checked: true, reference: 'OP123456' }))).status, 409)
+  await handler(request({ ...auth, action: 'retry' }))
+  assert.equal(emails, 1)
+  const production = transferManagement({ store, secret: () => secret, mode: () => 'sandbox', production: () => true, deliver: async current => current })
+  assert.equal((await production(request({ ...auth, action: 'inspect' }))).status, 404)
+  assert.equal(transferReference(' op-123456 '), transferReference('OP123456'))
+  assert.equal(currencyFor('transferencia'), 'ARS')
+  assert.ok(configurationIssues('manual-a1', 'mercadoPago').includes('replaced-by-transfer'))
+  assert.deepEqual(getBookPaymentLinks('manual-a1').map(link => link.provider), ['transferencia', 'paypal'])
+})
+
+test('transfer notice: pending only, concurrent deduplication, retry and ambiguity limit', async () => {
+  const store = new MemoryStore()
+  const transfer = { ...order('transferencia'), amount: 990000 }
+  await store.create(transfer)
+  let sent = 0
+  await Promise.all(Array.from({ length: 4 }, () => notifyTransfer(store, transfer.id, async () => { sent++ })))
+  assert.equal(sent, 1)
+  assert.equal((await store.read(transfer.id))!.status, 'pending')
+  assert.equal((await store.read(transfer.id))!.emailSentAt, undefined)
+  const retry = { ...transfer, id: newOrderId() }
+  await store.create(retry)
+  const now = Date.now()
+  await notifyTransfer(store, retry.id, async () => { throw new Error('timeout') }, now)
+  await notifyTransfer(store, retry.id, async () => { sent++ }, now + 1000)
+  assert.equal(sent, 2)
+  const stale = { ...transfer, id: newOrderId() }
+  await store.create(stale)
+  await notifyTransfer(store, stale.id, async () => { throw new Error('timeout') }, now)
+  await notifyTransfer(store, stale.id, async () => { sent++ }, now + 24 * 3600_000)
+  assert.equal(sent, 2)
+  assert.ok((await store.read(stale.id))!.transferNotice?.needsReview)
+})
+
+test('transfer mail failure keeps payment and retries delivery once', async () => {
+  const store = new MemoryStore()
+  const transfer = { ...order('transferencia'), amount: 990000 }
+  await store.create(transfer)
+  await confirmTransfer(store, transfer.id, 'BANK123456')
+  await assert.rejects(deliverEmail(store, transfer.id, async () => { throw new Error('offline') }))
+  assert.equal((await store.read(transfer.id))!.status, 'paid')
+  let sent = 0
+  await deliverEmail(store, transfer.id, async () => { sent++; return 'retry-mail' })
+  await deliverEmail(store, transfer.id, async () => { sent++; return 'duplicate' })
+  assert.equal(sent, 1)
+})
+
+test('transfer download rejects pending and revoked orders; reconciliation needs no external provider', async () => {
+  const { GET } = await import('../app/api/libros/descarga/route')
+  const originalRead = orderStore.read, originalFetch = globalThis.fetch
+  const previousSecret = process.env.BOOK_TOKEN_SECRET, previousMode = process.env.BOOK_PAYMENT_MODE, previousEnv = process.env.VERCEL_ENV
+  process.env.BOOK_TOKEN_SECRET = secret
+  process.env.BOOK_PAYMENT_MODE = 'sandbox'
+  process.env.VERCEL_ENV = 'preview'
+  const transfer: Order = { ...order('transferencia'), amount: 990000, paidAt: new Date().toISOString(), providerOrderId: undefined }
+  let current = transfer
+  orderStore.read = async () => current
+  globalThis.fetch = async () => { throw new Error('No external service allowed in transfer reconciliation') }
+  const token = downloadToken(transfer.id, transfer.paidAt!, secret)
+  try {
+    assert.equal((await GET(new Request(`https://www.italicia.com/api/libros/descarga/?token=${token}`))).status, 403)
+    current = { ...transfer, status: 'paid' }
+    assert.equal((await reconcileOrder(current, false)).status, 'paid')
+    const stalePaid = current
+    current = { ...current, status: 'revoked' }
+    assert.equal((await reconcileOrder(stalePaid, false)).status, 'revoked')
+    assert.equal((await GET(new Request(`https://www.italicia.com/api/libros/descarga/?token=${token}`))).status, 403)
+  } finally {
+    orderStore.read = originalRead; globalThis.fetch = originalFetch
+    for (const [key, value] of Object.entries({ BOOK_TOKEN_SECRET: previousSecret, BOOK_PAYMENT_MODE: previousMode, VERCEL_ENV: previousEnv })) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value
+    }
+  }
+})
 
 test('owner alerts: confirmed sale, concurrency, failures, retries, old orders and sandbox isolation', async () => {
   const previous = { env: process.env.VERCEL_ENV, since: process.env.BOOK_OWNER_ALERTS_FROM }

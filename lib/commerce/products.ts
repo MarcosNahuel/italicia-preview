@@ -1,7 +1,7 @@
 import { materials } from '../catalog'
 
 export type ProductId = 'manual-a1' | 'lectura-a1'
-export type Provider = 'mercadoPago' | 'paypal'
+export type Provider = 'mercadoPago' | 'paypal' | 'transferencia'
 export type Currency = 'ARS' | 'USD'
 
 export function getProduct(id: string) {
@@ -17,11 +17,11 @@ export function getProduct(id: string) {
 }
 
 export function isProvider(value: unknown): value is Provider {
-  return value === 'mercadoPago' || value === 'paypal'
+  return value === 'mercadoPago' || value === 'paypal' || value === 'transferencia'
 }
 
 export function currencyFor(provider: Provider): Currency {
-  return provider === 'mercadoPago' ? 'ARS' : 'USD'
+  return provider === 'paypal' ? 'USD' : 'ARS'
 }
 
 // Work in integer cents: never trust a price or a currency supplied by the browser.
